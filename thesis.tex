@@ -53,7 +53,21 @@ With such layered structure, we introduced concept of \textit{abstraction}. Ever
 \begin{figure}[h!]
 	\centering
 	\includegraphics[scale=0.32]{OSI-model-layers}
-	\caption{OSI layers}
+	\caption{OSI layers, from \cite{GeeksForGeeks:OSI-model}}
+\end{figure}
+
+
+\section{Existing transport implementations}
+Previous section mentioned the terms of semantic and temporal transparency. Consequently, there exist two different transport layer implementations, one for each transparency type. \\
+
+The first protocol, which implements semantic transparency, is called TCP (Transmission Control Protocol)\footnote{https://datatracker.ietf.org/doc/html/rfc793}. TCP abstracts away the concept of computer network and exposes a simple interface to the user, where writing bytes is almost the same as writing to a simple binary file. \\
+
+The second protocol, which implements temporal transparency, is called UDP (User Datagram Protocol)\footnote{https://datatracker.ietf.org/doc/html/rfc768}. UDP is a protocol that implements a thin layer of abstraction over the network layer.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.5]{TCP-vs-UDP}
+	\caption{Comparison between TCP and UDP protocols, from \cite{NetBurner:TCP-vs-UDP}}
 \end{figure}
 
 \chapter{Uvod}
