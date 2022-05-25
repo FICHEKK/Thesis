@@ -70,6 +70,20 @@ The second protocol, which implements temporal transparency, is called UDP (User
 	\caption{Comparison between TCP and UDP protocols, from \cite{NetBurner:TCP-vs-UDP}}
 \end{figure}
 
+
+\section{Custom transport implementation}
+While TCP and UDP are great at solving their own use-cases, there exists a major problem: each protocol solves only one type of transparency. With the rise of online gaming, there appeared the need for having both transparency implementations at once; some data would require reliability and ordering that TCP provides (for example, textual chat messages), while other types needed only latest data without the guarantee of delivery (for example, position of the player in a virtual world). \\
+
+Using both protocols at the same time, based on the type of data, is not an ideal solution either, for multiple reasons \cite{GafferOnGames:UDP-vs-TCP}:
+
+\begin{enumerate}
+	\item Using TCP can induce packet loss in UDP packets as routers often prioritize TCP segments (as dropping TCP segment requires re-sending, while dropping UDP packet does not).
+	\item Supporting many reliable channels (for example, one channel for text message data, another for images or audio) would require many TCP connections, quickly exhausting operating system resources.
+	\item Application code-base would be hard to manage, potentially resulting in slower development and harder to track bugs.
+\end{enumerate}
+
+For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, where temporal transparency is preserved. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, we simply need to upgrade it with optional semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
+
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
 
