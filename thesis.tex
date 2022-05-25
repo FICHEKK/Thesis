@@ -1,6 +1,10 @@
 \documentclass[times, utf8, diplomski]{fer}
 \usepackage{booktabs}
 
+\graphicspath{ {./images/} }
+\setcitestyle{numbers}
+\setcitestyle{square}
+
 \begin{document}
 
 \thesisnumber{2963}
@@ -15,6 +19,42 @@
 % \zahvala{}
 
 \tableofcontents
+
+\chapter{Transport}
+This chapter introduces and explains in detail the concept of a transport layer. It starts by giving an introduction to networking, explaining motivation behind a layered structure. It then discusses today's most widely used transport layers. Finally, it finishes by giving a detailed look into a custom transport layer implementation.
+
+\section{Introduction}
+Computer networking is a very complex problem. It consists of many different sub-problems, such as packet-routing, data transmission, integrity, reliability, congestion-control, flow-control and much more. In order to deal with such complexity, ISO (International Organization for Standardization)\footnote{https://en.wikipedia.org/wiki/International\_Organization\_for\_Standardization} developed OSI (Open Systems Interconnection) model\footnote{https://en.wikipedia.org/wiki/OSI\_model} in the year 1984. OSI model divides complex problem of computer networking into a structure consisting of 7 layers\footnote{https://www.geeksforgeeks.org/layers-of-osi-model/}, each layer building on top of the layer below it. Layers are defined as follows:
+
+\begin{enumerate}
+	\item \textbf{Physical layer} is responsible for transmission of raw signals between two or more physical entities. Jobs of this layer include transmission of bits, bit-rate control and support for various modes of transmission such as simplex, half-duplex and full-duplex.
+	
+	\item \textbf{Data-link layer} enables communication between two neighboring network nodes (devices). Basic functions of this layer include point-to-point frame transmission, error-control and data-flow control. 
+	
+	\item \textbf{Network layer} solves the problem of end-to-end device communication. Functions of network layer include routing (finding optimal route for data to reach its destination) and logical addressing (ability to uniquely identify a device on the computer network).
+	
+	\item \textbf{Transport layer} is responsible for transmission of data from process-to-process while satisfying transparency criterion. There are two types of transparencies \cite{kommre}:
+	
+	\begin{enumerate}
+		\item \textit{Semantic transparency} whose only task it to ensure that data arrives reliably and in-order it was sent.
+		\item \textit{Temporal transparency} that only focuses on delivering data as fast as possible.
+	\end{enumerate}
+
+	\item \textbf{Session layer} is responsible for establishing, maintaining and terminating connections, authentication and security.
+	
+	\item \textbf{Presentation layer} is responsible for encryption/decryption, compression and translation between data formats.
+	
+	\item \textbf{Application layer} is where all of the data is produced, processed and shown to the end-user. 
+\end{enumerate}
+
+With such layered structure, we introduced concept of \textit{abstraction}. Every layer simply uses implementation below it without the need to know how it is implemented. This gives us the ability to easily swap out implementations of different layers in the stack.
+
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.32]{OSI-model-layers}
+	\caption{OSI layers}
+\end{figure}
 
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
