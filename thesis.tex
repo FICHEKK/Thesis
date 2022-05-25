@@ -1,6 +1,8 @@
 \documentclass[times, utf8, diplomski]{fer}
 \usepackage{booktabs}
 
+\newcommand{\classname}[1]{\texttt{#1}}
+
 \graphicspath{ {./images/} }
 \setcitestyle{numbers}
 \setcitestyle{square}
@@ -83,6 +85,27 @@ Using both protocols at the same time, based on the type of data, is not an idea
 \end{enumerate}
 
 For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, where temporal transparency is preserved. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, we simply need to upgrade it with optional semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
+
+\subsection{Packet}
+\classname{Packet} represents a single outgoing message of arbitrary data that can be sent over the network. It is a thin abstraction layer over raw byte-array and therefore offers some of the benefits that a raw byte-array cannot. \\
+
+One such benefit is object pooling\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern}. As creation of packets is a very frequent occurrence in networked applications, allocating new packet instances (which also internally keeps a medium sized byte-array) each time a packet is needed would quickly fill-up heap memory, prompting execution of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}. This is especially important in applications that have time constraints, such as games, where even one slowly executed frame could ruin user experience. \\
+
+Another benefit is separation of write-only and read-only operations. Since \classname{Packet} represents an outgoing packet, it only offers methods for writing data (constructing the packet). Those methods also provide powerful functionality, allowing user to construct packets containing complex structures. \\
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.2]{Packet-write}
+	\caption{Example of writing data to a packet}
+\end{figure}
+
+Third benefit is cleaner code. Spotting an instance of \classname{Packet} immediately gives information to the reader that this code works with networking. Same could not be said for byte-array as its usages are much broader. \\
+
+\classname{Packet} also defines an important constant, which is the maximum size, in bytes. This constant is carefully chosen to avoid packet fragmentation on the network layer. Any packets that require bigger size must use a fragmented channel which will perform fragmentation and reassembly on the application layer. Maximum size is equal to Ethernet MTU (Maximum transmission unit, 1500 bytes) subtracted by IP header size (20 bytes) and UDP header size (8 bytes), which results in maximum size of 1472 bytes.
+
+\begin{equation}
+	Maximum \; size = 1500 - 20 - 8 = 1472 \; bytes \label{eq:max_packet_size}
+\end{equation}
 
 \subsection{Array pooling}
 Fluid gameplay with no stuttering is essential for user experience. Standard value that always needs to be maintained is at least 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS). Failing to render at least that many frames each second is going to result in noticeable lag, drastically decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}, where all of the previously allocated memory that is no longer referenced is being freed.\\
