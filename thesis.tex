@@ -1,5 +1,7 @@
 \documentclass[times, utf8, diplomski]{fer}
+
 \usepackage{booktabs}
+\usepackage{float}
 
 \newcommand{\classname}[1]{\texttt{#1}}
 
@@ -105,12 +107,53 @@ Similarly to \classname{Packet}, which is write-only, there exists a read-only p
 
 Finally, the last benefit is cleaner code. Spotting an instance of \classname{Packet} or \classname{Read\-Only\-Packet} immediately gives information to the reader that this code works with networking. Same could not be said for byte-array as its usages are much broader. \\
 
-\classname{Packet} also defines an important constant, which is the maximum size, in bytes. This constant is carefully chosen to avoid packet fragmentation on the network layer. Any packets that require bigger size must use a fragmented channel which will perform fragmentation and reassembly on the application layer. Maximum size is equal to Ethernet MTU (Maximum transmission unit, 1500 bytes) subtracted by IP header size (20 bytes) and UDP header size (8 bytes), which results in maximum size of 1472 bytes.
+\classname{Packet} also defines an important constant, which is the maximum size, in bytes. This constant is carefully chosen to avoid packet fragmentation on the network layer. Any packets that require bigger size must use a fragmented channel which will perform fragmentation and reassembly on the application layer. Maximum size is equal to Ethernet MTU (Maximum transmission unit, 1500 bytes) subtracted by IP header size (20 bytes) and UDP header size (8 bytes), which results in maximum size of 1472 bytes.\\
 
 \begin{equation}
 	Maximum \; size = 1500 - 20 - 8 = 1472 \; bytes \label{eq:max_packet_size}
 \end{equation}
 
+\subsubsection{Packet structure}
+Each packet follows the same structure, which is a header type followed by the header-specific payload. It is important to mention that header is always inserted as the first byte without any exceptions.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.25]{Packet-structure}
+	\caption{Packet structure}
+\end{figure}
+
+
+\subsubsection{Header types}
+Header type is used to denote what kind of packet it is and allows the receiver to decode the meaning behind received bytes.
+
+\begin{table}[H]
+	\centering
+	\resizebox{\textwidth}{!}{%
+		\begin{tabular}{|c|c|c|}
+			\hline
+			\textbf{Header type} & \textbf{Description}                                                                                                                   & \textbf{Payload}                                                                       \\ \hline
+			Connect              & \begin{tabular}[c]{@{}c@{}}Sent by the client to server when\\ establishing a virtual connection.\end{tabular}                         & Optional connect data                                                                  \\ \hline
+			ConnectApproved      & \begin{tabular}[c]{@{}c@{}}Sent by the server to client when\\ connection request has been approved.\end{tabular}                      & -                                                                                      \\ \hline
+			Ping                 & \begin{tabular}[c]{@{}c@{}}Used for measuring connection latency\\ and serves as a keep-alive packet.\end{tabular}                     & Sequence number                                                                        \\ \hline
+			Pong                 & Response to the ping packet.                                                                                                           & Sequence number                                                                        \\ \hline
+			Data                 & Indicates that the packet contains data.                                                                                               & \begin{tabular}[c]{@{}c@{}}Channel ID, channel header,\\ application data\end{tabular} \\ \hline
+			Acknowledgement      & \begin{tabular}[c]{@{}c@{}}Indicates that specific set of\\ packets have been received.\end{tabular}                                   & \begin{tabular}[c]{@{}c@{}}Channel ID, sequence number,\\ ack bit-field\end{tabular}   \\ \hline
+			Disconnect           & \begin{tabular}[c]{@{}c@{}}Sender has closed its side of the connection and\\ will no longer send or receive any packets.\end{tabular} & -                                                                                      \\ \hline
+			Timeout              & Indicates that a connection has timed-out.                                                                                             & -                                                                                      \\ \hline
+		\end{tabular}%
+	}
+
+	\caption{All of the possible header types.}
+	\label{table:header-types}
+\end{table}
+
+Only one header type is special, and that is the \textit{Data} type, as that is the only type with which the end-user is going to interact with.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.25]{Data-packet-structure}
+	\caption{Data-packet structure}
+\end{figure}
 
 
 \subsection{Array pooling}
