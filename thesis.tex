@@ -263,6 +263,39 @@ Another problem needs to be addressed: sequence number wrapping. As sequence num
 Algorithm is based on a simple idea: if sequence number values are close numerically, wrapping did not occur. Sequence numbers are close if absolute value of their difference is smaller or equal to half of the full sequence number range.
 
 
+\subsubsection{Reliable channel}
+Reliable channel solves all four problems: order, duplication, reliability and fragmentation. The rest of this section is going to cover in detail how reliability and fragmentation were solved.\\
+
+To solve reliability, packet acknowledgments and re-transmission concepts are borrowed from TCP. The idea is that each packet sent needs to be acknowledged by the receiver. If packet is not acknowledged in a certain amount of time, it is considered lost and will be re-transmitted. A packet that has been sent, but not yet acknowledged by the receiver is called a \textit{pending packet}. \\
+
+Each pending packet internally maintains a timer that will, if expired, automatically resend the packet. If acknowledgment is received before timer expires, timer is canceled and pending packet is removed from the collection of active pending packets. To prevent sending packets \textit{ad infinitum}, each pending packet internally counts number of re-transmission attempts. If the counter exceeds maximum number of attempts (value which is defined by the channel), connection is deemed lost and will be timed-out. \\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{Resend-diagram}
+	\caption{Resend diagram that shows how data and acknowledgment packets are sent and received. Diagram shows that data-packet 0 was successfully acknowledged and did not require a resend. Meanwhile, acknowledgment of data-packet 1 was lost in transit, which in turn made sender's timer time-out, causing data-packet 1 to be resent.}
+\end{figure}
+
+On the receiving side of the channel, array of received packets is maintained. It is an array that is updated in the following manner: for each received packet, sequence number is read from the header. If array slot at index which is equal to sequence number is empty, that means received packet is not a duplicate and is stored in the array. If the slot is already filled, that means received packet is a duplicate and is discarded. If a packet was successfully stored, acknowledgment is sent to the sender. \\
+
+Acknowledgment packet has the ability to acknowledge multiple packets at once. Naive approach would be to simply send an array of several most recently received packet sequence numbers. However, since each sequence number is a 16-bit integer, that approach is very bandwidth inefficient. Much more efficient approach is to use so called \textit{anchor sequence number} combined with additional acknowledgment bit-field. \\
+
+Anchor sequence number is an actual 16-bit sequence number and it is equal to the sequence number of the most recently received packet. Acknowledgment bit-field is a bit-field in which each bit is responsible for acknowledging a sequence number relative to anchor. Concretely, first bit is responsible for indicating whether packet with sequence number \textit{anchor - 1} has been received. If bit is set, it means packet was received, otherwise it wasn't. In general, bit at position \textit{n} is responsible for indicating whether packet with sequence number \textit{anchor sequence number - n} has been received. With this approach, 8 previous sequence numbers can be acknowledged using only 1 additional byte of data. This approach achieves perfect entropy\footnote{https://en.wikipedia.org/wiki/Entropy\_(information\_theory)}.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{Ack-packet-structure}
+	\caption{Format of the acknowledgment packet sent through the reliable channel.}
+\end{figure}
+
+In order for receiver to receive packets in actual order they were originally sent, another state variable is used: \textit{receive sequence number}. It represents the next expected packet sequence number. Once a packet with that sequence number is received, packet is forwarded to the library user and receive sequence number is incremented. If packet is received out-of-order (for example, packet with number 7 is received before 6), packet is buffered for later.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{Ordered-receive}
+	\caption{Ordered receive implemented using \textit{receive sequence number}. Array slots that have numbers in it represent already received and stored packets, while empty slots are packets that haven't been received yet. Blue numbers represent packets that have been forwarded to library user. First array shows that sequence number 2 is expected and that packets 3, 4 and 6 have been already received, but haven't been forwarded to the user (as forwarding would violate order since packet 2 still hasn't been received). Second array shows what happens when packet 2 is received. Packet 2 is forwarded, but also 3 and 4 since those packets have been received earlier. At the end of it, next expected sequence number is 5.}
+\end{figure}
+
 
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
