@@ -170,6 +170,47 @@ In our implementation, array pooling is implemented using an array of buckets. I
 	\caption{Array pool buckets}
 \end{figure}
 
+
+
+\subsection{Channels}
+Channel represents a component that controls the way packets are sent and received. There are four fundamental problems that a channel can, but does not have to solve:
+
+\begin{enumerate}
+	\item \textbf{Order} - ability for the receiver to receive packets in order in which they were originally sent.
+	\item \textbf{Duplication} - ability for receiver to detect and discard duplicate packets.
+	\item \textbf{Reliability} - ability for sender to ensure that receiver received a packet.
+	\item \textbf{Fragmentation} - ability for sender to divide a big packet into smaller packets called \textit{fragments} and for receiver to reassemble those into original big packet.
+\end{enumerate}
+
+\begin{center}
+	\begin{table}[H]
+		\centering
+		
+		\begin{tabular}{ |c|c|c|c|c|c| } 
+			\hline
+			Name & Order & Duplication & Reliability & Fragmentation \\ 
+			\hline
+			Unreliable        & - & - & - & - \\ 
+			Sequenced         & Yes & Yes & - & - \\ 
+			Reliable          & Yes & Yes & Yes & Yes \\ 
+			\hline
+		\end{tabular}
+		
+		\caption{Channel implementations and problems each implementation solves}
+	\end{table}
+\end{center}
+
+Each channel also has a name associated with it and keeps track of bandwidth statistics, which is useful for diagnosing network usage. Information tracked by the channel are following state variables:
+
+\begin{enumerate}
+	\item \textbf{Packets sent} represents total number of packets sent through the channel.
+	\item \textbf{Bytes sent} represents total number of bytes sent through the channel.
+	\item \textbf{Packets received} represents total number of packets received on the channel.
+	\item \textbf{Bytes received} represents total number of bytes received on the channel.
+\end{enumerate}
+
+
+
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
 
