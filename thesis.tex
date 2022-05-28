@@ -2,7 +2,11 @@
 
 \usepackage{booktabs}
 \usepackage{float}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
 
+\algnewcommand{\Or}{\textbf{ or }}
+\algnewcommand{\And}{\textbf{ and }}
 \newcommand{\classname}[1]{\texttt{#1}}
 
 \graphicspath{ {./images/} }
@@ -151,7 +155,7 @@ Only one header type is special, and that is the \textit{Data} type, as that is 
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[scale=0.25]{Data-packet-structure}
+	\includegraphics[scale=0.2]{Data-packet-structure}
 	\caption{Data-packet structure}
 \end{figure}
 
@@ -208,6 +212,55 @@ Each channel also has a name associated with it and keeps track of bandwidth sta
 	\item \textbf{Packets received} represents total number of packets received on the channel.
 	\item \textbf{Bytes received} represents total number of bytes received on the channel.
 \end{enumerate}
+
+
+
+\subsubsection{Unreliable channel}
+Unreliable channel is the most basic channel type that does no processing of sent and received packets. Since it does not perform any logic, this channel type does not use any header bytes in the packet. It acts as a pure UDP socket, therefore it does not provide any insurance:
+
+\begin{enumerate}
+	\item Packets can arrive out-of-order and receiver has no way of reassembling packets in order.
+	\item Packets can be duplicated in the network and receiver has no way of knowing it received a duplicate packet.
+	\item Packets can be lost in the network and sender has no way of knowing if packet was potentially lost in transit.
+	\item Packet size is limited as there is no support for fragmentation and reassembly.
+\end{enumerate}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.2]{Unreliable-packet-structure}
+	\caption{Format of the packet sent through the unreliable channel.}
+\end{figure}
+
+
+
+\subsubsection{Sequenced channel}
+Sequenced channel solves two problems: order and duplication. It does so by attaching a unique number to each outgoing packet called \textit{local sequence number}, which is a state variable maintained by the sending side of the channel. For each packet sent, local sequence number is incremented.
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[scale=0.2]{Sequenced-packet-structure}
+	\caption{Format of the packet sent through the sequenced channel.}
+\end{figure}
+
+On the receiver side, another state variable is maintained: \textit{remote sequence number}. The remote sequence number holds the value of the highest received sequence number and this value is used to determine whether a newly received packet should be accepted or discarded. \\
+
+Once a new packet is received, the sequence number is read from the packet. If the sequence number contained in the packet is greater than the remote sequence number, packet is accepted, otherwise it is discarded. \\
+
+Another problem needs to be addressed: sequence number wrapping. As sequence numbers are stored in only 2 bytes, maximum sequence number value can be 65535. Once this sequence number is reached, next packet sequence number is going to wrap back to the minimum value of 0. Using naive approach of comparing raw sequence number values is going to produce wrong results; even though 65535 is numerically greater than 0, it logically is not. To solve this problem, the following algorithm is used to compare sequence numbers:
+
+\begin{algorithm}[H]
+	\caption{Comparing sequence numbers with wrapping}
+	\textbf{Input:} First sequence number $seq1$, second sequence number $seq2$ \\
+	\textbf{Output:} $true$ if $seq1$ is greater than $seq2$, $false$ otherwise \\
+	
+	\begin{algorithmic}
+		\State $isGreaterRegular \gets seq1 > seq2 \And seq1 - seq2 \leq 32767$
+		\State $isGreaterWithWrap \gets seq1 < seq2 \And seq2 - seq1 > 32767$ \\
+		\Return $isGreaterRegular \Or isGreaterWithWrap$
+	\end{algorithmic}
+\end{algorithm}
+
+Algorithm is based on a simple idea: if sequence number values are close numerically, wrapping did not occur. Sequence numbers are close if absolute value of their difference is smaller or equal to half of the full sequence number range.
 
 
 
