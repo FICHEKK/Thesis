@@ -296,6 +296,37 @@ In order for receiver to receive packets in actual order they were originally se
 	\caption{Ordered receive implemented using \textit{receive sequence number}. Array slots that have numbers in it represent already received and stored packets, while empty slots are packets that haven't been received yet. Blue numbers represent packets that have been forwarded to library user. First array shows that sequence number 2 is expected and that packets 3, 4 and 6 have been already received, but haven't been forwarded to the user (as forwarding would violate order since packet 2 still hasn't been received). Second array shows what happens when packet 2 is received. Packet 2 is forwarded, but also 3 and 4 since those packets have been received earlier. At the end of it, next expected sequence number is 5.}
 \end{figure}
 
+With the previously described system packets are always received in-order and are guaranteed to be delivered (or connection times-out if maximum number of resend attempts are exceeded). This channel property allows implementation of another very useful feature: fragmentation and reassembly of big packets \cite{GafferOnGames:Sending-large-blocks-of-data}.\\
+
+Fragmentation is a process of breaking up a big packet into multiple smaller packets called \textit{fragments} which can be easily transferred over the network. A big packet is defined as a packet whose size exceeds maximum packet size \eqref{eq:max_packet_size}. Fragmentation is performed by the sending side of the channel. Reassembly is the reverse process: combining fragments into the original big packet. Reassembly is performed by the receiving side of the channel. \\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{Fragmentation-and-reassembly}
+	\caption{Simple flow diagram of fragmentation and reassembly.}
+\end{figure}
+
+In order to support fragmentation and reassembly, additional fields need to be attached to each packet. First field is \textit{fragment index} which defines a position in the original big packet. Second field is \textit{fragment count} that states how many fragments a big packet consists of.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.2]{Reliable-packet-structure}
+	\caption{Format of the packet sent through the reliable channel.}
+\end{figure}
+
+Fragmentation on the sender side of the channel is performed as follows: each time a packet is being sent, total number of fragments required is calculated (based on the packet size). If packet consists of only a single fragment, that means fragmentation is not needed and packet is sent as is (with fragment index set to 0 and fragment count set to 1). If packet consists of multiple fragments, big packet's payload is distributed into multiple fragments (each storing only a fraction of the big packet) and then each fragment is sent. \\
+
+Reassembly on the receiver side of the channel is performed as follows: if a fragment with count of 1 is received, it is immediately forwarded to the user. If fragment count is greater than 1, receiver attempts to reassemble original big packet. It can only do so if all of the fragments have been received.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{Fragmentation-pending-packets}
+	\caption{Example of received packets array combined with fragmentation and reassembly system. Numbers above the array represent packet sequence numbers. Numbers in the array slots represent fragment indexes. Numbers with the same color belong to the same original big packet. Once receiver receives all of the required fragments (which it can deduce based on the fragment count attached to each fragment), it can reassemble original big packet. }
+\end{figure}
+
+This fragmentation and reassembly implementation allows users to efficiently and safely send packets with sizes up to $1466 \times 255 = 373830 \; bytes$.
+
+
 
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
