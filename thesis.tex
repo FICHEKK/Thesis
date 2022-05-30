@@ -328,6 +328,31 @@ This fragmentation and reassembly implementation allows users to efficiently and
 
 
 
+\subsection{Connection}
+Connection represents a link between two network nodes. It is a higher level component that has multiple responsibilities:
+
+\begin{enumerate}
+	\item Holds an array of channels and is responsible for forwarding packets to the corresponding channel.
+	\item Calculates round-trip time by sending ping packets and automatically performs time-out if no valid response is received in certain amount of time.
+	\item Keeps track of bandwidth statistics (total number of packets/bytes that were sent/received).
+\end{enumerate}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.35]{Connection}
+	\caption{Visual representation of a network connection.}
+\end{figure}
+
+Each connection can have up-to 256 channels. Channels are differentiated by their ID, which is a single byte value.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.2]{Connection-channels}
+	\caption{Example of channel array that is maintained by the connection.}
+\end{figure}
+
+
+
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
 
