@@ -337,12 +337,6 @@ Connection represents a link between two network nodes. It is a higher level com
 	\item Keeps track of bandwidth statistics (total number of packets/bytes that were sent/received).
 \end{enumerate}
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.35]{Connection}
-	\caption{Visual representation of a network connection.}
-\end{figure}
-
 Each connection can have up-to 256 channels. Channels are differentiated by their ID, which is a single byte value.
 
 \begin{figure}[H]
@@ -350,6 +344,86 @@ Each connection can have up-to 256 channels. Channels are differentiated by thei
 	\includegraphics[scale=0.2]{Connection-channels}
 	\caption{Example of channel array that is maintained by the connection.}
 \end{figure}
+
+
+
+\subsection{Nodes}
+Final piece of the puzzle is an actual network node. A network node represents a fundamental building block of any network graph that can send and receive data. A graph\footnote{https://en.wikipedia.org/wiki/Graph\_theory\#Graph} consists of vertices (which are represented by nodes) and edges (which are represented by connections).
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.35]{Connection}
+	\caption{Visual representation of a simple network graph.}
+\end{figure}
+
+\subsubsection{Client}
+Client represents a network node that has one to one relationship with the server. Client node never directly communicates with any other client nodes, only with the server. Client exposes a simple API\footnote{https://en.wikipedia.org/wiki/API} for connecting to the server, sending packets and disconnecting from the server.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Method} & \textbf{Description}                                                                                            \\ \hline
+		Connect         & \begin{tabular}[c]{@{}c@{}}Attempts to establish a\\ connection with the server.\end{tabular}                   \\ \hline
+		Send            & Sends a packet to the server.                                                                                   \\ \hline
+		Disconnect      & \begin{tabular}[c]{@{}c@{}}Disconnects from the server and\\ stops listening for incoming packets.\end{tabular} \\ \hline
+	\end{tabular}
+	\caption{Client API.}
+	\label{table:client-api}
+\end{table}
+
+Client also raises important events that occurred during runtime\footnote{https://en.wikipedia.org/wiki/Runtime\_(program\_lifecycle\_phase)}, to which many subscribers can listen to.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Event} & \textbf{Description}                                                                                                              \\ \hline
+		Connecting     & \begin{tabular}[c]{@{}c@{}}Invoked each time client starts the process of\\ establishing connection with the server.\end{tabular} \\ \hline
+		Connected      & \begin{tabular}[c]{@{}c@{}}Invoked each time client\\ successfully connects to the server.\end{tabular}                           \\ \hline
+		ConnectFailed  & \begin{tabular}[c]{@{}c@{}}Invoked each time client fails to\\ establish a connection with the server.\end{tabular}               \\ \hline
+		PacketReceived & \begin{tabular}[c]{@{}c@{}}Invoked each time a data-packet\\ is received from the server.\end{tabular}                            \\ \hline
+		Disconnected   & \begin{tabular}[c]{@{}c@{}}Invoked each time client\\ disconnects from the server.\end{tabular}                                   \\ \hline
+	\end{tabular}
+	\caption{All of the possible events that can be raised by a client node.}
+	\label{table:client-events}
+\end{table}
+
+\subsubsection{Server}
+Server represents a network node that has one to many relationship with clients. Server node never communicates with any other server nodes. Server exposes a simple API for starting the server, sending packets to one or more clients, kicking specific clients and stopping the server.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Method} & \textbf{Description}                                                                                         \\ \hline
+		Start           & Starts listening for incoming client packets.                                                                \\ \hline
+		SendToOne       & Sends a packet to one specific client.                                                                       \\ \hline
+		SendToMany      & Sends a packet to many clients.                                                                              \\ \hline
+		SendToAll       & Sends a packet to all connected clients.                                                                     \\ \hline
+		Kick            & Deliberately disconnects specific client.                                                                    \\ \hline
+		Stop            & \begin{tabular}[c]{@{}c@{}}Disconnects all clients and prevents\\ any further incoming packets.\end{tabular} \\ \hline
+	\end{tabular}
+	\caption{Server API.}
+	\label{table:server-api}
+\end{table}
+
+Server also raises important events that occurred during runtime, to which many subscribers can listen to.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Event}     & \textbf{Description}                                                                                                   \\ \hline
+		Started            & \begin{tabular}[c]{@{}c@{}}Invoked each time server starts and\\ begins listening for client connections.\end{tabular} \\ \hline
+		ClientConnected    & \begin{tabular}[c]{@{}c@{}}Invoked each time a new client\\ connects to the server.\end{tabular}                       \\ \hline
+		ClientDisconnected & \begin{tabular}[c]{@{}c@{}}Invoked each time an already connected\\ client disconnects from the server.\end{tabular}   \\ \hline
+		PacketReceived     & \begin{tabular}[c]{@{}c@{}}Invoked each time a data-packet\\ is received from a client.\end{tabular}                   \\ \hline
+		Stopped            & \begin{tabular}[c]{@{}c@{}}Invoked each time server stops and no\\ longer listens for client connections.\end{tabular} \\ \hline
+	\end{tabular}
+	\caption{All of the possible events that can be raised by a server node.}
+	\label{table:server-events}
+\end{table}
 
 
 
