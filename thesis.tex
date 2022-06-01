@@ -9,7 +9,7 @@
 \algnewcommand{\And}{\textbf{ and }}
 \newcommand{\classname}[1]{\texttt{#1}}
 
-\graphicspath{ {./images/} }
+\graphicspath{ {./images/Transport/} {./images/HLAPI/} }
 \setcitestyle{numbers}
 \setcitestyle{square}
 
@@ -425,12 +425,61 @@ Server also raises important events that occurred during runtime, to which many 
 	\label{table:server-events}
 \end{table}
 
-
-
-\subsection{Simulation}
+\subsubsection{Simulation}
 When building a networking application using local network, connection is almost always going to be flawless. There will be no packet loss, latency will be minuscule and there will generally be no problems.\\
 
 However, real-life networks are unpredictable; packet-loss will occur and latency is going to vary. In order to test how your application would behave under those real network conditions, optional network simulation can be enabled. It allows each node to specify artificial packet-loss and any amount of latency.
+
+
+\chapter{High-level library}
+This chapter explains in detail the concept and implementation of a high-level library developed for the Unity\footnote{https://unity.com/} game-engine.
+
+\section{Component: Network Manager}
+
+\section{Component: Network Object}
+
+\section{Component: Network Behavior}
+
+\section{Component: Network Transform}
+\textit{NetworkTransform} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of synchronizing object's position, rotation and scale.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=1.1]{NetworkTransform-inspector}
+	\caption{NetworkTransform component displayed inside Unity's inspector.}
+\end{figure}
+
+It is a powerful component that allows user to synchronize object's transform by simply attaching the component to it. Since transform synchronization is one of the most commonly encountered problems when creating a networked game, general solution such as this one saves developer a lot of time.\\
+
+However, since transform synchronization is so common, simple ease of use is not enough; it also must be efficient. Component has to be able to support potentially hundreds of simultaneous instances and to achieve that it exploits the following facts:
+
+\begin{enumerate}
+	\item Object's rotation or scale is in many cases never-changing. That fact can be exploited to save bandwidth by giving the user ability to disable synchronization of particular transport's component (position, rotation or scale). If a component is disabled, its data is never going to be added to the outgoing synchronization packet, saving valuable bandwidth.
+	
+	\item If object's transform does not change, it does not need to be synced. Transform is marked as changed only if one of its enabled components' values has been changed by a value greater than threshold defined for that component. if transform is changed, only modified components are included in the sync packet. This way only changed components of changed transforms are synced, massively reducing the number of sync packets required.
+\end{enumerate}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{NetworkTransform-position-diagram}
+	\caption{Example of position synchronization. Orange arrow is a delta vector that shows the change in position since last synchronization. If length of the delta vector exceeds user-defined threshold, synchronization will occur.}
+\end{figure}
+
+\textit{NetworkTransform} is also allowed on nested objects (for example, player's body could have one, but also player's head another, which synchronizes only head rotation). In order to understand how this is achieved, packet structure must be explained.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{NetworkTransform-packet-structure}
+	\caption{Structure of the packet that is sent by the \textit{NetworkTransform} component.}
+\end{figure}
+
+Component starts by inserting 2-byte value that indicates that packet contains object transform information. It is followed by specific object's ID that uniquely identifies it, allowing receiver to know which exactly which object's transform should be modified. After that, behavior index is provided to the receiver, which allows the receiver to know which exact child transform should be modified (this information allows for nested networked transforms).\\
+
+To indicate whether a transform's component is included in a packet, so called \textit{dirty bit-field} is used. It is a single byte whose first bit indicates whether position is included in the packet, second bit indicates whether rotation is included and third bit indicates whether scale is included. In the end, actual position, rotation and/or scale of an object is provided.\\
+
+This component uses sequenced channel to send its packets, as only the most recent data is relevant. This system provides user with a very simple, but bandwidth-efficient way to synchronize transform of any networked object. 
+
+\section{Component: Network Spawner}
 
 
 
