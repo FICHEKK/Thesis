@@ -480,8 +480,41 @@ To indicate whether a transform's component is included in a packet, so called \
 This component uses sequenced channel to send its packets, as only the most recent data is relevant. This system provides user with a very simple, but bandwidth-efficient way to synchronize transform of any networked object. 
 
 \section{Component: Network Spawner}
+\textit{NetworkSpawner} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of spawning and despawning objects when a client connects or disconnects from the server.
 
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=1.1]{NetworkSpawner-inspector}
+	\caption{NetworkSpawner component displayed inside Unity's inspector.}
+\end{figure}
 
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Field}     & \textbf{Description}                                                                                                       \\ \hline
+		Prefab             & Defines which object should be spawned.                                                                                    \\ \hline
+		Is Owned By Client & \begin{tabular}[c]{@{}c@{}}If true, ownership of the spawned object\\ will be given to the connecting client.\end{tabular} \\ \hline
+		Use Random Spawn   & \begin{tabular}[c]{@{}c@{}}If true, position of the spawned object\\ will be chosen at random.\end{tabular}                \\ \hline
+		Spawn Positions    & \begin{tabular}[c]{@{}c@{}}List of all the possible positions a newly\\ spawned object can be placed at.\end{tabular}      \\ \hline
+		Gizmo Color        & \begin{tabular}[c]{@{}c@{}}Color of the sphere gizmo that shows\\ all of the spawn positions.\end{tabular}                 \\ \hline
+		Gizmo Radius       & Radius of the gizmo sphere.                                                                                                \\ \hline
+	\end{tabular}
+	\caption{NetworkSpawner fields.}
+	\label{table:network-spawner-fields}
+\end{table}
+
+It is a simple component that works in the following manner: whenever a new client is spawned, it firstly chooses a spawn position. If \textit{Use Random Spawn} option is selected, position will be chosen randomly from the \textit{Spawn Positions} list (otherwise, positions are chosen in order and wrap around when exhausted). \\
+
+After spawn position has been selected, object defined by \textit{Prefab} field is spawned and all of the clients are informed about it. Finally, if \textit{Is Owned By Client} option is selected, ownership of the spawned object is given to the connecting client. \\
+
+Component also keeps track of all the spawned objects so when a client disconnects it simply despawns object associated with the disconnecting client. This component is server-only, meaning it cannot run on a client.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.65]{NetworkSpawner-example}
+	\caption{NetworkSpawner gizmos displayed inside Unity's scene view. Blue spheres give visual cue to where spawn positions are in placed in the world.}
+\end{figure}
 
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
