@@ -437,6 +437,37 @@ This chapter explains in detail the concept and implementation of a high-level l
 \section{Component: Network Manager}
 
 \section{Component: Network Object}
+\textit{NetworkObject} is a one of the core components of the high-level library. As such, it has multiple crucial purposes:
+
+\begin{enumerate}
+	\item It explicitly marks object as an entity that requires networking functionality, separating it from regular, non-networked entities.
+	\item It contains a unique identifier of the object in a networked environment, making that object referable by multiple processes.
+	\item It contains prefab\footnote{https://docs.unity3d.com/Manual/Prefabs.html} information from which object can be replicated over multiple processes.
+	\item It contains ownership information, allowing a user of the library to develop components which can only be executed by the object owner.
+	\item It maintains a list of behavior components which provide concrete networked functionality.
+\end{enumerate}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.75]{NetworkObject-example}
+	\caption{NetworkObject gizmos drawn in the Unity scene-view, allowing developer to easily view all of the networked objects and their information.}
+\end{figure}
+
+
+There are two types of networked objects: those that are a embedded as a part of the Unity scene and those that are dynamically spawned during runtime.
+
+\begin{table}[H]
+	\centering
+	\begin{tabular}{|c|c|}
+		\hline
+		\textbf{Field} & \textbf{Description}                                                                                                                                                \\ \hline
+		Prefab ID      & \begin{tabular}[c]{@{}c@{}}Identifier of the prefab from which\\ this networked object has been created.\\ In a case of scene object, it is set to -1.\end{tabular} \\ \hline
+		Object ID      & \begin{tabular}[c]{@{}c@{}}Unique identifier of the specific\\ network object instance.\end{tabular}                                                                \\ \hline
+		Is Owner       & \begin{tabular}[c]{@{}c@{}}If true, object can be controlled by the\\ local process, otherwise it can't.\end{tabular}                                               \\ \hline
+	\end{tabular}
+	\caption{NetworkObject fields.}
+	\label{table:network-object-fields}
+\end{table}
 
 \section{Component: Network Behavior}
 
