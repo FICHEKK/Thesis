@@ -537,7 +537,23 @@ To achieve such system, each NetworkObject and NetworkBehavior maintains a \text
 With such system, we can easily encode and transmit only changed nodes and receiver can just as easily receive, decode and update its local state.
 
 \subsection{Remote procedure calls (RPCs)}
-Remote procedure call\footnote{https://en.wikipedia.org/wiki/Remote\_procedure\_call} (RPC) is a mechanism for executing a piece of code on the remote machine.
+Remote procedure call\footnote{https://en.wikipedia.org/wiki/Remote\_procedure\_call} (RPC) is a mechanism for executing a piece of code on the remote machine. High-level library supports two types of RPCs: server RPC and client RPC. Server RPC is a method that is called on the client, but executed on the server, while client RPC is called on the server but executed on the client.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{NetworkBehavior-RPC-diagram}
+	\caption{Diagram that shows how RPC works. In case of server RPC, client initiates the call by sending packet containing information required to execute the RPC. Once received by the server, actual method body is executed. Same logic applies to client RPC, with server calling and client executing.}
+\end{figure}
+
+As remote procedure calls are actual method calls, with only difference being the location of execution, they should also have the ability to accept method parameters. In order to understand how that is achieved, RPC packet must be examined.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{NetworkBehavior-RPC-packet-structure}
+	\caption{Structure of the RPC packet.}
+\end{figure}
+
+Packet starts with 2-bytes that indicate it is an RPC packet. It is followed by an object ID and behavior index that uniquely point to a specific NetworkBehavior which should execute the method call. After that hash is inserted that uniquely identifies a specific method (hash is calculated by hashing fully qualified method name and ensuring there are no hash conflicts). Finally, method parameters are inserted, if needed. With this information, receiver of the RPC packet can execute the method.
 
 \section{Component: Network Transform}
 \textit{NetworkTransform} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of synchronizing object's position, rotation and scale.
