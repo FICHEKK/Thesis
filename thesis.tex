@@ -7,6 +7,10 @@
 
 \algnewcommand{\Or}{\textbf{ or }}
 \algnewcommand{\And}{\textbf{ and }}
+
+\algnewcommand\algorithmicforeach{\textbf{for each}}
+\algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
+
 \newcommand{\classname}[1]{\texttt{#1}}
 
 \graphicspath{ {./images/Transport/} {./images/HLAPI/} }
@@ -470,6 +474,70 @@ There are two types of networked objects: those that are a embedded as a part of
 \end{table}
 
 \section{Component: Network Behavior}
+\textit{NetworkBehavior} is an abstract component that allows and makes it easy for library user to implement arbitrary networked functionality. It is a class that extends \textit{MonoBehaviour}\footnote{https://docs.unity3d.com/ScriptReference/MonoBehaviour.html} and exposes two powerful features: state synchronization and remote procedure calls.
+
+\subsection{State synchronization}
+State synchronization is automatic distribution of modified state to each process in a networked environment. It abstracts away the need to create custom packets for each state variable present in the networked simulation. This section explains how such feature is achieved. \\
+
+At the core of state synchronization feature is a concept of change - only a variable that has changed needs to be broadcast. Since standard state variables such as integers do not have a way to listen for their changes, a new generic wrapper type is introduced - \textit{NetworkVariable<T>} (where T represents variable's data-type).\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{NetworkObject-tree}
+	\caption{NetworkObject hierarchy example - each networked object consists of one or more behaviors and each behavior can contain zero or more networked variables.}
+\end{figure}
+
+NetworkVariable is a simple component that encapsulates a single state variable, keeps track of whether that variable has been modified and has the ability to serialize and deserialize the wrapped value. If state variable has been modified, it is going to fire an event. This event is important as it is going to notify NetworkBehavior that contains the variable of the change. In turn, behavior is going to notify NetworkObject of the change and that object is going to be added to a collection of objects that need to be synced.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{NetworkObject-propagation-of-change}
+	\caption{Propagation of change through the hierarchy (red color represents modified/dirty node) - single NetworkVariable change is going to mark parent NetworkBehavior as dirty, as well as grandparent NetworkObject node.}
+\end{figure}
+
+Even though this system outputs which networked objects have been modified, we still need a way to efficiently broadcast the changes so other process instances can update their local version of the state. Such system needs to broadcast only those variables that have been changed, as broadcasting whole state of an object each time a single variable changes would be extremely inefficient and bandwidth-wasteful.\\
+
+To achieve such system, each NetworkObject and NetworkBehavior maintains a \textit{dirty bit-field} where each bit indicates whether a child node has been modified. Order of bits corresponds to order of child nodes - first bit represents left-most child node, second bit node right next to it and so on. Bit-field is of fixed size (32 bits in the library) which imposes a limit on the number of child nodes a single node can have.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.3]{NetworkObject-bit-field}
+	\caption{Values of dirty bit-fields - root node has two child behavior nodes and only left child is dirty, so left bit is set to 1 and right bit is 0. Using exact same logic, left behavior has dirty bit-field of 01 as only right variable is modified, while right behavior has 00 bit-field as no variables have been modified.}
+\end{figure}
+
+\begin{algorithm}[H]
+	\caption{Encoding state synchronization packet}
+	\textbf{Input:} Dirty NetworkObject node \\
+	\textbf{Output:} Packet containing only modified state variables \\
+	
+	\begin{algorithmic}
+		\State $packet \gets empty \; reliable \; packet$
+		\State $packet \gets object.id$
+		\State $packet \gets object.dirtyBitField$
+		\State
+		
+		\ForEach {$behavior \in object.dirtyBehaviors $}
+			\State $packet \gets behaviour.dirtyBitField$
+			\State
+			
+			\ForEach {$variable \in behavior.dirtyVariables $}
+				\State $packet \gets variable$
+			\EndFor
+			
+			\State
+			\State $behaviour.dirtyBitField = 0$
+		\EndFor
+		
+		\State
+		\State $object.dirtyBitField = 0$
+		\State \Return $packet$
+	\end{algorithmic}
+\end{algorithm}
+
+With such system, we can easily encode and transmit only changed nodes and receiver can just as easily receive, decode and update its local state.
+
+\subsection{Remote procedure calls (RPCs)}
+Remote procedure call\footnote{https://en.wikipedia.org/wiki/Remote\_procedure\_call} (RPC) is a mechanism for executing a piece of code on the remote machine.
 
 \section{Component: Network Transform}
 \textit{NetworkTransform} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of synchronizing object's position, rotation and scale.
