@@ -665,11 +665,22 @@ Component also keeps track of all the spawned objects so when a client disconnec
 	\caption{NetworkSpawner gizmos displayed inside Unity's scene view. Blue spheres give visual cue to where spawn positions are in placed in the world.}
 \end{figure}
 
+\chapter{Application}
+This chapter showcases a multiplayer game that was build by using previously described high-level networking library.
+
 \chapter{Uvod}
 Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
 
-\chapter{Zaključak}
-Zaključak.
+\chapter{Conclusion}
+This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack. Those chapters are:
+
+\begin{enumerate}
+	\item Transport chapter which describes an implementation of a low-level reliable UDP library.
+	\item High-level chapter which describes Unity specific components that create powerful abstractions and allow users to easily develop complex networking solutions.
+	\item Application chapter that showcases actual product developed on top of high-level library. 
+\end{enumerate}
+
+This thesis demonstrates that creating a multiplayer game is objectively not an easy task and utilizing an already existing networking library is recommended. Thesis also provides detailed information about how previously mentioned layers have been achieved in order to allow a reader to recreate those solutions for their own uses, if needed.
 
 \bibliography{literature}
 \bibliographystyle{fer}
