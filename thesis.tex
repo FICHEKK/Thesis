@@ -439,6 +439,41 @@ However, real-life networks are unpredictable; packet-loss will occur and latenc
 This chapter explains in detail the concept and implementation of a high-level library developed for the Unity\footnote{https://unity.com/} game-engine.
 
 \section{Component: Network Manager}
+\textit{NetworkManager} is a central component of the high-level library that has several responsibilities:
+
+\begin{enumerate}
+	\item It contains network configuration.
+	\item It contains and manages all of the networked objects in the scene.
+	\item It handles all of the internal library packets.
+\end{enumerate}
+
+\begin{table}[H]
+	\centering
+	\resizebox{\textwidth}{!}{
+		\begin{tabular}{|c|c|c|}
+			\hline
+			\textbf{Packet}     & \textbf{Description}                                                                                                                                      & \textbf{Payload}                                                                             \\ \hline
+			Object Scene Create & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client when a client joins and\\ needs to recreate an already existing networked scene.\end{tabular} & List of networked objects                                                                    \\ \hline
+			Object Spawn        & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client when\\ an object should be spawned.\end{tabular}                                              & \begin{tabular}[c]{@{}c@{}}Prefab ID, Object ID,\\ Transform\end{tabular}                    \\ \hline
+			Object Owner        & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client to give\\ or take ownership of the specific network object.\end{tabular}                      & Object ID, Is owner                                                                          \\ \hline
+			Object Update       & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client each update\\ tick when there are any object variable updates.\end{tabular}                   & Object ID, Variables                                                                         \\ \hline
+			Object Transform    & \begin{tabular}[c]{@{}c@{}}Sent by the server to the\\ client to update object's transform.\end{tabular}                                                  & \begin{tabular}[c]{@{}c@{}}Object ID, Behavior index,\\ Transform\end{tabular}               \\ \hline
+			Object Toggle       & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client when a\\ networked object should be enabled or disabled.\end{tabular}                         & Object ID, Is enabled                                                                        \\ \hline
+			Object Destroy      & \begin{tabular}[c]{@{}c@{}}Sent by the server to the client when\\ a networked object should be destroyed.\end{tabular}                                   & Object ID                                                                                    \\ \hline
+			Rpc                 & \begin{tabular}[c]{@{}c@{}}Sent by the client to the server or server to \\ the client when invoking a remote procedure call.\end{tabular}                & \begin{tabular}[c]{@{}c@{}}Object ID, Behavior index,\\ Rpc hash and parameters\end{tabular} \\ \hline
+		\end{tabular}
+	}
+	\caption{Internal packet types handled by the NetworkManager component.}
+	\label{table:network-manager-packets}
+\end{table}
+
+Because of its importance, it is also the only singleton\footnote{https://en.wikipedia.org/wiki/Singleton\_pattern} component, so that it can be conveniently accessed from anywhere in the application.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.85]{NetworkManager-inspector}
+	\caption{NetworkManager shown in the Unity inspector.}
+\end{figure}
 
 \section{Component: Network Object}
 \textit{NetworkObject} is a one of the core components of the high-level library. As such, it has multiple crucial purposes:
@@ -456,7 +491,6 @@ This chapter explains in detail the concept and implementation of a high-level l
 	\includegraphics[scale=0.75]{NetworkObject-example}
 	\caption{NetworkObject gizmos drawn in the Unity scene-view, allowing developer to easily view all of the networked objects and their information.}
 \end{figure}
-
 
 There are two types of networked objects: those that are a embedded as a part of the Unity scene and those that are dynamically spawned during runtime.
 
