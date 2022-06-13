@@ -13,7 +13,7 @@
 
 \newcommand{\classname}[1]{\texttt{#1}}
 
-\graphicspath{ {./images/Transport/} {./images/HLAPI/} }
+\graphicspath{ {./images/Transport/} {./images/HLAPI/} {./images/Application/} }
 \setcitestyle{numbers}
 \setcitestyle{square}
 
@@ -447,6 +447,43 @@ This chapter explains in detail the concept and implementation of a high-level l
 	\item It handles all of the internal library packets.
 \end{enumerate}
 
+\subsection{Network configuration}
+In order to help user easily configure networking settings, it is all in one place - in the NetworkManager component. Because of that, it is also the only singleton\footnote{https://en.wikipedia.org/wiki/Singleton\_pattern} component, so that it can be conveniently accessed from anywhere in the application.\\
+
+\textit{Run In Background} set to \textit{true} ensures that application is going to run even if it does not have focus\footnote{https://en.wikipedia.org/wiki/Focus\_(computing)}. \textit{Don't Destroy On Load}\footnote{https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html} set to \textit{true} marks NetworkManager as scene-persistent - changing scenes will not destroy the instance. \textit{Network Prefabs Path} defines where all of the object templates that can be spawned over the network are located.\\
+
+Next-up there are client settings - IP address and port to which connect attempt should be made. Server settings define listen port and maximum number of client connections. Both client and server can then also set-up virtual network simulation - packet-loss, minimum and maximum latency.\\
+
+\textit{RPC Naming Convention} allows the user to specify how RPC methods should be named in pursue of cleaner code. \textit{Debug Information} helps user to detect potential packet or network object leaks during runtime and provides useful information such as registered client and server packet handlers and types used by the serialization system.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.85]{NetworkManager-inspector}
+	\caption{NetworkManager shown in the Unity inspector.}
+\end{figure}
+
+\subsection{Network objects}
+NetworkManager stores and keeps track of all active networked objects in the current scene. It separates them into two groups: scene objects and spawned objects. Scene objects are networked objects that are a part of the scene and both client and server have them at the start of the game. Runtime objects are networked objects that are spawned during runtime by the manager on the server side. In order to uniquely identify objects over the network, manager also assigns each object a unique number called \textit{object ID}. \\
+
+\subsubsection{Spawning}
+In order for manager to be able to spawn objects over the network, each process instance has to contain information about which objects can be spawned. This information is stored in a dictionary which maps unique IDs to corresponding prefabs that can be spawned.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.25]{NetworkManager-prefabs}
+	\caption{Example of prefabs that are registered in the NetworkManager - each prefab has been assigned an ID by the manager. For example, if manager wants to spawn a green circle over the network, all it has to do is send prefab ID and object ID to the clients which will be able to recreate their own green circles using local ID-prefab dictionary.}
+\end{figure}
+
+With such structure, spawning is a simple process: manager creates an object from the prefab template, assigns it a unique object ID, stores it in a local dictionary and broadcasts prefab ID and object ID to all of the clients so their local managers can do the same. This process is encapsulates inside a single network manager method call.
+
+\subsubsection{Destroying and toggling}
+Destroying an object over the network is an even simpler process than spawning - manager destroys local networked object by ID and simply broadcasts the destroyed object ID so all the clients can destroy their own local copy of the object. \\
+
+Toggling is the process of enabling or disabling an object. Similarly to destroying, all that has to be done to toggle an object over the network is to perform it locally and broadcast to other clients object ID and flag that indicates whether object is enabled or disabled.
+
+\subsubsection{Library packets}
+To perform all of the actions described by the previous sections and more, manager has to handle many packet types. Each packet type is responsible for one type of action and carries its own unique payload.
+
 \begin{table}[H]
 	\centering
 	\resizebox{\textwidth}{!}{
@@ -467,13 +504,7 @@ This chapter explains in detail the concept and implementation of a high-level l
 	\label{table:network-manager-packets}
 \end{table}
 
-Because of its importance, it is also the only singleton\footnote{https://en.wikipedia.org/wiki/Singleton\_pattern} component, so that it can be conveniently accessed from anywhere in the application.
 
-\begin{figure}[H]
-	\centering
-	\includegraphics[scale=0.85]{NetworkManager-inspector}
-	\caption{NetworkManager shown in the Unity inspector.}
-\end{figure}
 
 \section{Component: Network Object}
 \textit{NetworkObject} is a one of the core components of the high-level library. As such, it has multiple crucial purposes:
@@ -666,10 +697,6 @@ Component also keeps track of all the spawned objects so when a client disconnec
 \end{figure}
 
 \chapter{Application}
-This chapter showcases a multiplayer game that was build by using previously described high-level networking library.
-
-\chapter{Uvod}
-Uvod rada. Nakon uvoda dolaze poglavlja u kojima se obrađuje tema.
 
 \chapter{Conclusion}
 This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack. Those chapters are:
