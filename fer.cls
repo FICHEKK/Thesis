@@ -258,6 +258,39 @@
   Koristi \noexpand\thesisnumber za definiranje}}
 \fi
 
+\newcommand\maketitleeng{%
+	\begin{titlepage}%
+	\let\footnotesize\small
+	\let\footnoterule\relax
+	
+	\begin{center}
+		{\large\sffamily UNIVERSITY OF ZAGREB}
+		
+		{\large\bfseries\sffamily FACULTY OF ELECTRICAL ENGINEERING AND COMPUTING}
+	\end{center}
+
+	\vfill
+	
+	\begin{center}%
+
+		{\large\sffamily GRADUATE THESIS no.~\@thesisnumber \par}%
+
+		\vskip 1em%
+		
+		{\huge \bfseries\sffamily Development and application of a videogame multiplayer networking library \par}%
+		\vskip 1em%
+		{\large\sffamily\lineskip .75em%
+			\begin{tabular}[t]{c}%
+				\@author
+			\end{tabular}\par}%
+	\end{center}\par
+	\vfill
+	\begin{center}
+		{\sffamily\large Zagreb, June 2022.}
+	\end{center}
+	\end{titlepage}%
+}
+
 \if@titlepage
 	\renewcommand\maketitle{%
 	\begin{titlepage}%
