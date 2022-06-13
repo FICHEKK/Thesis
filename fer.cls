@@ -273,7 +273,7 @@
 	
 	\begin{center}%
 
-		{\large\sffamily GRADUATE THESIS no.~\@thesisnumber \par}%
+		{\large\sffamily MASTER THESIS ASSIGNMENT no.~\@thesisnumber \par}%
 
 		\vskip 1em%
 		
