@@ -741,7 +741,7 @@ In order to help player survive and defeat enemy waves, various items called \te
 	\caption{Example of pick-ups that can be found on the map. There are three types: health and ammo pick-ups which restores some of the player's health and ammo respectively, and steroid which grants player the ability to perform big jumps for a certain period of time.}
 \end{figure}
 
-\subsection{Networking}
+\subsection{Networking implementation}
 This section is going to explain how multiplayer was implemented in the game scene by utilizing the high-level library.\\
 
 For initial spawning of the players that join the game, NetworkSpawner component is used. It simply spawns a prefab of the player on a predefined position once it successfully joins the game.\\
@@ -783,6 +783,46 @@ If all the player have been killed by the enemies, game is over and host of the 
 	\includegraphics[scale=0.5]{Game-over}
 	\caption{Game-over interface shown to the host of the game once all players have been killed.}
 \end{figure}
+
+
+
+\subsection{Networking scripts}
+This section lists and given brief explanation of all the scripts that have been developed to achieve multiplayer functionality in the game scene.
+
+\begin{table}[H]
+	\centering
+	\resizebox{\columnwidth}{!}{%
+		\begin{tabular}{|c|c|}
+			\hline
+			\textbf{Script Name}    & \textbf{Description}                                                        \\ \hline
+			Lava                    & Moves lava up and down and deals damage to any player that touches it.      \\ \hline
+			Enemy &
+			\begin{tabular}[c]{@{}c@{}}Abstract base class of all the enemies in the game. Contains\\ enemy health and raises event when enemy is killed.\end{tabular} \\ \hline
+			Jetpack Enemy Entity    & Defines collision logic with the player's bullet.                           \\ \hline
+			Jetpack Enemy System    & Controls the movement and behavior of all the active jetpack enemies.       \\ \hline
+			Turret Pod Enemy Entity & Defines collision logic with the player's bullet.                           \\ \hline
+			Turret Pod Enemy System & Controls the movement and behavior of all the active turret pod enemies.    \\ \hline
+			Bullet Entity           & Defines collision logic of a bullet.                                        \\ \hline
+			Bullet System           & Controls the movement of all active bullets in the game scene.              \\ \hline
+			Pick Up &
+			\begin{tabular}[c]{@{}c@{}}Abstract base class of all the pick-ups in the game. Defines abstract\\ method for what should happen when on collision with a player.\end{tabular} \\ \hline
+			Ammo Pick Up            & Increases player's ammo on collision.                                       \\ \hline
+			Health Pick Up          & Increases player's health on collision.                                     \\ \hline
+			Steroid Pick Up         & Increases player's jump height on collision (for a certain amount of time). \\ \hline
+			Pick Up Respawn System  & Controls respawning of all pick-ups in the game scene.                      \\ \hline
+			Wave Manager            & Performs the logic of spawning enemy waves.                                 \\ \hline
+			Input State             & Synchronizes player's input with the server.                                \\ \hline
+			Player Controller       & Contains and manages player's current state (ammo, health and jump height). \\ \hline
+			Player Manager          & Keeps track of all the active players.                                      \\ \hline
+			Gun Controller          & Controls player's shooting logic.                                           \\ \hline
+			Network Object Pool     & Contains reuse logic of networked objects that are frequently used.         \\ \hline
+		\end{tabular}%
+	}
+	\caption{All of the developed scripts used to implement multiplayer functionality.}
+	\label{table:game-scene-network-scripts}
+\end{table}
+
+
 
 \chapter{Conclusion}
 This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack. Those chapters are:
