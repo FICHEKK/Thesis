@@ -69,7 +69,7 @@
 \else \if@enccp \RequirePackage[cp1250]{inputenc} \fi
 \fi
 
-\RequirePackage[croatian]{babel}
+\RequirePackage[english]{babel}
 \RequirePackage[T1]{fontenc}
 \RequirePackage{graphicx} % Uključeno jer je često korišteno
 \RequirePackage{amssymb} % Uključeno jer je često korišteno
@@ -110,12 +110,13 @@
 \renewcommand{\captionlabelfont}{\bfseries}
 \renewcommand{\captionfont}{\small}
 
+
 % 1.5 prored, 1.3 je faktor za množenje
 \linespread{1.3}
 
 % Promjena naziva poglavlja ``Bibliografija'' -> ``Literatura''
 \addto\captionscroatian{%
-	\def\bibname{Literatura}
+	\def\bibname{Literature}
 }
 
 % Podešavanje oznaka kod listi (1. razina je crtica, 2. puni krug) 
