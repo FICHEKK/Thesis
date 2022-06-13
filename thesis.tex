@@ -697,6 +697,92 @@ Component also keeps track of all the spawned objects so when a client disconnec
 \end{figure}
 
 \chapter{Application}
+This chapter showcases a multiplayer game that was build by using previously described high-level networking library. Game is a simple Doom\footnote{https://en.wikipedia.org/wiki/Doom\_(1993\_video\_game)} inspired shooter in which player has to defeat waves of enemies. Game consists main-menu and game scene.
+
+\section{Main-menu}
+Upon entering the application, player is placed in a main-menu scene. It is a simple scene that allows the user to either create, join or exit the game.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{MainMenu}
+	\caption{View into the main-menu.}
+\end{figure}
+
+\textit{Create game} button turns the local player into a host which acts as both client and server. This means other players can join the game by connecting to host's IP address/port combination (port is determined by the second input field in main-menu).\\
+
+\textit{Join game} button attempts to join an already existing game that was started by another application instance. Destination at which attempt will be made is determined by the first and second input fields - first input field represents IP address and second defines port number.\\
+
+\textit{Exit} button simply terminates the application process.
+
+\section{Game scene}
+Once a game has been either created or joined, player is placed in the game scene. It has a dark atmosphere and consists of a rocky map surrounded by moving lava.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.56]{Game-map}
+	\caption{Map as seen from the bird's eye-view.}
+\end{figure}
+
+Main goal of the game is to defeat incoming enemy waves, which get progressively harder by having more and stronger enemies. To help player defeat enemy waves, gun is provided which can be used to shoot enemies from far away. However, gun has limited ammunition, so player has to keep moving around the map where more ammo can be found. \\
+
+Player also has limited health which decreases with each enemy hit. If it reaches zero, player dies. If all the players die, game is finished and new game must be created.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Game-spawn}
+	\caption{Game from the player's point of view. In the bottom left corner, player can always get information about current health and ammo. Bottom right corner displays number of enemies alive.}
+\end{figure}
+
+In order to help player survive and defeat enemy waves, various items called \textit{pick-ups} are scattered across the map. When those are picked-up, they grant player a useful resource.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.7]{Game-pick-ups}
+	\caption{Example of pick-ups that can be found on the map. There are three types: health and ammo pick-ups which restores some of the player's health and ammo respectively, and steroid which grants player the ability to perform big jumps for a certain period of time.}
+\end{figure}
+
+\subsection{Networking}
+This section is going to explain how multiplayer was implemented in the game scene by utilizing the high-level library.\\
+
+For initial spawning of the players that join the game, NetworkSpawner component is used. It simply spawns a prefab of the player on a predefined position once it successfully joins the game.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Game-players-at-spawn}
+	\caption{Example of players that have joined the game and were placed on the spawn positions.}
+\end{figure}
+
+After a player has joined, wave spawning logic will start. That logic is executed exclusively by the server in order to ensure server-authority. It includes spawning of enemies via NetworkManager and tracking when new ones should be spawned. It consists of multiple spawn actions, where each action spawns certain amount of enemies in a specific predefined spawn area.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.58]{Game-spawn-areas}
+	\caption{All of the defined spawn areas which are used by the wave spawning logic.}
+\end{figure}
+
+Once first set of enemies has been spawned, game officially starts. Enemy behavior is controlled exclusively by the server using custom NetworkBehavior implementations. Their position, rotation and positions of bullets they shoot are all synchronized with a NetworkTransform component.\\
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Game-enemies-networked}
+	\caption{View of the scene in the middle of combat. It consists of three enemy jet-pack riders (object IDs 23, 24 and 25) which are shooting bullets (IDs 31, 34 and 40) at two players that are in the game (IDs 20 and 21).}
+\end{figure}
+
+Each pick-up in the game is also a networked object whose collision with the player is tracked by the server (this logic is encapsulated inside a custom NetworkBehavior implementation). Once a collision is detected, pick-up is disabled over the network and effect is applied to the player that triggered the collision.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.8]{Game-pick-ups-networked}
+	\caption{Networked pick-ups in the game.}
+\end{figure}
+
+If all the player have been killed by the enemies, game is over and host of the game can either restart the game by pressing the \textit{Retry} button or can terminate the game session by pressing the \textit{Exit} button. Restarting the game causes a scene-reload on all clients and game logic is executed from start as described previously.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.5]{Game-over}
+	\caption{Game-over interface shown to the host of the game once all players have been killed.}
+\end{figure}
 
 \chapter{Conclusion}
 This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack. Those chapters are:
