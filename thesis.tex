@@ -14,7 +14,14 @@
 
 \newcommand{\classname}[1]{\texttt{#1}}
 
-\graphicspath{ {./images/Transport/} {./images/HLAPI/} {./images/Application/} }
+\graphicspath
+{
+	{./images/}
+	{./images/Transport/}
+	{./images/HLAPI/}
+	{./images/Application/}
+}
+
 \setcitestyle{numbers}
 \setcitestyle{square}
 
@@ -35,7 +42,26 @@
 % Dodavanje zahvale ili prazne stranice. Ako ne želite dodati zahvalu, naredbu ostavite radi prazne stranice.
 % \zahvala{}
 
-{\small\tableofcontents}
+{\footnotesize\tableofcontents}
+
+\chapter{Introduction}
+In the recent years, multiplayer\footnote{https://en.wikipedia.org/wiki/Multiplayer\_video\_game} games have been on the rise. There are many reasons for it, with main ones being social interactions, replayability and unique experiences they provide. For a game to be considered multiplayer, it has to support a way for multiple human players to experience and participate in the game. Based on that simple requirement, games can implement multiplayer in a variety of ways:
+
+\begin{enumerate}
+	\item \textbf{Local multiplayer} in which the game runs on a single computing system. Popular implementations of local multiplayer include \textit{shared screen} and \textit{split screen}. In shared screen games, all players see the game from a single camera perspective, while in split screen mode each player has its own portion of the screen which shows the game from individual player's perspective. In terms of implementation difficulty, this is the simplest form of multiplayer and is not much different from single-player.
+	
+	\item \textbf{LAN multiplayer} in which the game runs on multiple computing systems and game simulation is synchronized over a local area network\footnote{https://en.wikipedia.org/wiki/Local\_area\_network}. Since local area networks are usually extremely fast and reliable, multiplayer implementation does not cause many problems.
+	
+	\item \textbf{WAN multiplayer} which is similar to LAN, except game simulation is synchronized over a wide area network\footnote{https://en.wikipedia.org/wiki/Wide\_area\_network} such as the Internet. Multiplayer over wide area networks requires the most complex implementation as such networks are unreliable and latency can vary greatly depending on the network conditions and distances between computing systems.
+\end{enumerate}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[scale=0.33]{Pummel-Party}
+	\caption{\textit{Pummel Party}, example of a multiplayer game.}
+\end{figure}
+ 
+Even without multiplayer, development of video-games is a process which requires a wide variety of skills. Adding the requirement of multiplayer functionality to such process greatly increases the difficulty of proper implementation - the one that runs without any problems. For that reason, game developers usually do not directly implement multiplayer solutions, but rather use existing networking libraries that solve many complex problems and provide high-level features for easy prototyping and fast development cycles. This thesis is going to explain how such solution can be implemented from the ground up. \\
 
 \chapter{Transport}
 This chapter introduces and explains in detail the concept of a transport layer. It starts by giving an introduction to networking, explaining motivation behind a layered structure. It then discusses today's most widely used transport layers. Finally, it finishes by giving a detailed look into a custom transport layer implementation.
