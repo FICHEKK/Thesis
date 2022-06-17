@@ -6,8 +6,8 @@
 \usepackage{algorithm}
 \usepackage{pdfpages}
 
-\algnewcommand{\Or}{\textbf{ or }}
-\algnewcommand{\And}{\textbf{ and }}
+\algnewcommand\OrWord{\textbf{ or }}
+\algnewcommand\AndWord{\textbf{ and }}
 
 \algnewcommand\algorithmicforeach{\textbf{for each}}
 \algdef{S}[FOR]{ForEach}[1]{\algorithmicforeach\ #1\ \algorithmicdo}
@@ -87,15 +87,15 @@ Computer networking is a very complex problem. It consists of many different sub
 	
 	\item \textbf{Presentation layer} is responsible for encryption/decryption, compression and translation between data formats.
 	
-	\item \textbf{Application layer} is where all of the data is produced, processed and shown to the end-user. 
+	\item \textbf{Application layer} is responsible for producing, processing and displaying data to the end-user.
 \end{enumerate}
 
-With such layered structure, we introduced concept of \textit{abstraction}. Every layer simply uses implementation below it without the need to know how it is implemented. This gives us the ability to easily swap out implementations of different layers in the stack.
+With such layered structure, \textit{abstraction} was introduced. Every layer simply uses implementation below it without the need to know how it is implemented. This gives engineers the ability to easily swap out implementations of different layers in the stack.
 
 
 \begin{figure}[h!]
 	\centering
-	\includegraphics[scale=0.32]{OSI-model-layers}
+	\includegraphics[scale=0.34]{OSI-model-layers}
 	\caption{OSI layers, from \cite{GeeksForGeeks:OSI-model}}
 \end{figure}
 
@@ -103,19 +103,21 @@ With such layered structure, we introduced concept of \textit{abstraction}. Ever
 \section{Existing transport implementations}
 Previous section mentioned the terms of semantic and temporal transparency. Consequently, there exist two different transport layer implementations, one for each transparency type. \\
 
-The first protocol, which implements semantic transparency, is called TCP (Transmission Control Protocol)\footnote{https://datatracker.ietf.org/doc/html/rfc793}. TCP abstracts away the concept of computer network and exposes a simple interface to the user, where writing bytes is almost the same as writing to a simple binary file. \\
+The first protocol, which implements semantic transparency, is called \textit{Transmission Control Protocol}\footnote{https://datatracker.ietf.org/doc/html/rfc793}. TCP abstracts away the concept of computer network and exposes a simple interface to the user, where writing bytes over the network is indistinguishable from writing to a simple binary file. TCP implements many complex features to ensure data arrives complete and in-order. It also enforces congestion control, where TCP dynamically adjusts send rate in order to not congest the network. \\
 
-The second protocol, which implements temporal transparency, is called UDP (User Datagram Protocol)\footnote{https://datatracker.ietf.org/doc/html/rfc768}. UDP is a protocol that implements a thin layer of abstraction over the network layer.
+The second protocol, which implements temporal transparency, is called \textit{User Datagram Protocol}\footnote{https://datatracker.ietf.org/doc/html/rfc768}. UDP is a protocol that implements a thin layer of abstraction over the network layer. UDP does not add any complex features that TCP has, it simply adds four more fields to the packet: source port, destination port, length and checksum. Its simplicity results in higher performance, but at the cost of reliability and order: packets can be lost or duplicated in transit and order of packets is not guaranteed.
 
-\begin{figure}[h!]
+\begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.5]{TCP-vs-UDP}
+	\includegraphics[scale=0.48]{TCP-vs-UDP}
 	\caption{Comparison between TCP and UDP protocols, from \cite{NetBurner:TCP-vs-UDP}}
 \end{figure}
 
 
 \section{Custom transport implementation}
-While TCP and UDP are great at solving their own use-cases, there exists a major problem: each protocol solves only one type of transparency. With the rise of online gaming, there appeared the need for having both transparency implementations at once; some data would require reliability and ordering that TCP provides (for example, textual chat messages), while other types needed only latest data without the guarantee of delivery (for example, position of the player in a virtual world). \\
+While TCP and UDP are great at solving their own use-cases, there exists a major problem: each protocol solves only one type of transparency. At the time those protocols were developed, it was thought those protocols could be used for solving all the problems. \\
+
+However, with the rise of online gaming, the need for having both transparency implementations at once appeared; some data would require reliability and ordering that TCP provides (for example, textual chat messages), while other types needed only latest data without the guarantee of delivery (for example, position of the player in a virtual world). \\
 
 Using both protocols at the same time, based on the type of data, is not an ideal solution either, for multiple reasons \cite{GafferOnGames:UDP-vs-TCP}:
 
@@ -125,7 +127,7 @@ Using both protocols at the same time, based on the type of data, is not an idea
 	\item Application code-base would be hard to manage, potentially resulting in slower development and harder to track bugs.
 \end{enumerate}
 
-For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, where temporal transparency is preserved. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, we simply need to upgrade it with optional semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
+For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, where temporal transparency is preserved. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, it simply needs to be upgraded it with \textbf{optional} semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
 
 
 
@@ -195,7 +197,7 @@ Only one header type is special, and that is the \textit{Data} type, as that is 
 \end{figure}
 
 
-\subsection{Array pooling}
+\subsubsection{Array pooling}
 Fluid gameplay with no stuttering is essential for user experience. Standard value that always needs to be maintained is at least 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS). Failing to render at least that many frames each second is going to result in noticeable lag, drastically decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}, where all of the previously allocated memory that is no longer referenced is being freed.\\
 
 However, garbage collection is only triggered when memory is no longer referenced. If we keep a reference to previously allocated memory and reuse it, no garbage collection will be performed. Such process of reusing memory is called \textit{object pooling}\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern} and is a standard practice in high-performance applications. As networked applications constantly keep sending packets back and forth (and packets are essentially just arrays of bytes), utilizing object pooling is perfectly suitable.\\
@@ -255,7 +257,7 @@ Unreliable channel is the most basic channel type that does no processing of sen
 
 \begin{enumerate}
 	\item Packets can arrive out-of-order and receiver has no way of reassembling packets in order.
-	\item Packets can be duplicated in the network and receiver has no way of knowing it received a duplicate packet.
+	\item Packets can be duplicated in the network and receiver has no way of knowing if it received a duplicate packet.
 	\item Packets can be lost in the network and sender has no way of knowing if packet was potentially lost in transit.
 	\item Packet size is limited as there is no support for fragmentation and reassembly.
 \end{enumerate}
@@ -289,9 +291,9 @@ Another problem needs to be addressed: sequence number wrapping. As sequence num
 	\textbf{Output:} $true$ if $seq1$ is greater than $seq2$, $false$ otherwise \\
 	
 	\begin{algorithmic}
-		\State $isGreaterRegular \gets seq1 > seq2 \And seq1 - seq2 \leq 32767$
-		\State $isGreaterWithWrap \gets seq1 < seq2 \And seq2 - seq1 > 32767$ \\
-		\Return $isGreaterRegular \Or isGreaterWithWrap$
+		\State $isGreaterRegular \gets seq1 > seq2 \AndWord seq1 - seq2 \leq 32767$
+		\State $isGreaterWithWrap \gets seq1 < seq2 \AndWord seq2 - seq1 > 32767$ \\
+		\Return $isGreaterRegular \OrWord isGreaterWithWrap$
 	\end{algorithmic}
 \end{algorithm}
 
@@ -376,14 +378,16 @@ Each connection can have up-to 256 channels. Channels are differentiated by thei
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.2]{Connection-channels}
+	\includegraphics[scale=0.25]{Connection-channels}
 	\caption{Example of channel array that is maintained by the connection.}
 \end{figure}
+
+Round-trip time is calculated by periodically sending packets with \textit{Ping} header type and attaching an incrementing identifier to the packet. Time of the sent ping is also stored in order to calculate round-trip time once response is received. Upon receiving a ping packet, receiver responds by sending a packet with \textit{Pong} header type and including identifier of the received ping packet. Once original sender receives the pong packet, it calculates round-trip time by taking the time difference between ping send and pong receive timestamps.
 
 
 
 \subsection{Nodes}
-Final piece of the puzzle is an actual network node. A network node represents a fundamental building block of any network graph that can send and receive data. A graph\footnote{https://en.wikipedia.org/wiki/Graph\_theory\#Graph} consists of vertices (which are represented by nodes) and edges (which are represented by connections).
+To tie it all together, an actual network node is required. A network node represents a fundamental building block of any network graph that can send and receive data. A graph\footnote{https://en.wikipedia.org/wiki/Graph\_theory\#Graph} consists of vertices (which are represented by nodes) and edges (which are represented by connections).
 
 \begin{figure}[H]
 	\centering
@@ -467,9 +471,9 @@ However, real-life networks are unpredictable; packet-loss will occur and latenc
 
 
 \chapter{High-level library}
-This chapter explains in detail the concept and implementation of a high-level library developed for the Unity\footnote{https://unity.com/} game-engine.
+This chapter explains in detail components that together make-up high-level library developed for the Unity\footnote{https://unity.com/} game-engine.
 
-\section{Component: Network Manager}
+\section{Network Manager}
 \textit{NetworkManager} is a central component of the high-level library that has several responsibilities:
 
 \begin{enumerate}
@@ -501,7 +505,7 @@ In order for manager to be able to spawn objects over the network, each process 
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.25]{NetworkManager-prefabs}
+	\includegraphics[scale=0.3]{NetworkManager-prefabs}
 	\caption{Example of prefabs that are registered in the NetworkManager - each prefab has been assigned an ID by the manager. For example, if manager wants to spawn a green circle over the network, all it has to do is send prefab ID and object ID to the clients which will be able to recreate their own green circles using local ID-prefab dictionary.}
 \end{figure}
 
@@ -537,39 +541,26 @@ To perform all of the actions described by the previous sections and more, manag
 
 
 
-\section{Component: Network Object}
+\section{Network Object}
 \textit{NetworkObject} is a one of the core components of the high-level library. As such, it has multiple crucial purposes:
 
 \begin{enumerate}
 	\item It explicitly marks object as an entity that requires networking functionality, separating it from regular, non-networked entities.
 	\item It contains a unique identifier of the object in a networked environment, making that object referable by multiple processes.
 	\item It contains prefab\footnote{https://docs.unity3d.com/Manual/Prefabs.html} information from which object can be replicated over multiple processes.
-	\item It contains ownership information, allowing a user of the library to develop components which can only be executed by the object owner.
+	\item It contains ownership information, allowing user of the library to develop components which can only be executed by the object owner.
 	\item It maintains a list of behavior components which provide concrete networked functionality.
 \end{enumerate}
 
+Even though it is one of the core components, on its own, it does not do much. It acts as a simple container of \textit{prefab ID} (identifier of the template from which the networked object has been created), \textit{object ID} (unique identifier of the specific network object instance) and \textit{ownership flag} (if set to true, object can be controlled by the local process, otherwise it can't).
+
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.75]{NetworkObject-example}
+	\includegraphics[scale=0.6]{NetworkObject-example}
 	\caption{NetworkObject gizmos drawn in the Unity scene-view, allowing developer to easily view all of the networked objects and their information.}
 \end{figure}
 
-There are two types of networked objects: those that are a embedded as a part of the Unity scene and those that are dynamically spawned during runtime.
-
-\begin{table}[H]
-	\centering
-	\begin{tabular}{|c|c|}
-		\hline
-		\textbf{Field} & \textbf{Description}                                                                                                                                                \\ \hline
-		Prefab ID      & \begin{tabular}[c]{@{}c@{}}Identifier of the prefab from which\\ this networked object has been created.\\ In a case of scene object, it is set to -1.\end{tabular} \\ \hline
-		Object ID      & \begin{tabular}[c]{@{}c@{}}Unique identifier of the specific\\ network object instance.\end{tabular}                                                                \\ \hline
-		Is Owner       & \begin{tabular}[c]{@{}c@{}}If true, object can be controlled by the\\ local process, otherwise it can't.\end{tabular}                                               \\ \hline
-	\end{tabular}
-	\caption{NetworkObject fields.}
-	\label{table:network-object-fields}
-\end{table}
-
-\section{Component: Network Behavior}
+\section{Network Behavior}
 \textit{NetworkBehavior} is an abstract component that allows and makes it easy for library user to implement arbitrary networked functionality. It is a class that extends \textit{MonoBehaviour}\footnote{https://docs.unity3d.com/ScriptReference/MonoBehaviour.html} and exposes two powerful features: state synchronization and remote procedure calls.
 
 \subsection{State synchronization}
@@ -579,7 +570,7 @@ At the core of state synchronization feature is a concept of change - only a var
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.3]{NetworkObject-tree}
+	\includegraphics[scale=0.27]{NetworkObject-tree}
 	\caption{NetworkObject hierarchy example - each networked object consists of one or more behaviors and each behavior can contain zero or more networked variables.}
 \end{figure}
 
@@ -651,7 +642,7 @@ As remote procedure calls are actual method calls, with only difference being th
 
 Packet starts with 2-bytes that indicate it is an RPC packet. It is followed by an object ID and behavior index that uniquely point to a specific NetworkBehavior which should execute the method call. After that hash is inserted that uniquely identifies a specific method (hash is calculated by hashing fully qualified method name and ensuring there are no hash conflicts). Finally, method parameters are inserted, if needed. With this information, receiver of the RPC packet can execute the method.
 
-\section{Component: Network Transform}
+\section{Network Transform}
 \textit{NetworkTransform} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of synchronizing object's position, rotation and scale.
 
 \begin{figure}[H]
@@ -660,7 +651,7 @@ Packet starts with 2-bytes that indicate it is an RPC packet. It is followed by 
 	\caption{NetworkTransform component displayed inside Unity's inspector.}
 \end{figure}
 
-It is a powerful component that allows user to synchronize object's transform by simply attaching the component to it. Since transform synchronization is one of the most commonly encountered problems when creating a networked game, general solution such as this one saves developer a lot of time.\\
+It is a powerful component that allows user to synchronize object's transform by simply attaching the component to it. Since transform synchronization is one of the most commonly encountered problems when creating a networked game, general solutions such as this one save developers a lot of time.\\
 
 However, since transform synchronization is so common, simple ease of use is not enough; it also must be efficient. Component has to be able to support potentially hundreds of simultaneous instances and to achieve that it exploits the following facts:
 
@@ -672,7 +663,7 @@ However, since transform synchronization is so common, simple ease of use is not
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.3]{NetworkTransform-position-diagram}
+	\includegraphics[scale=0.28]{NetworkTransform-position-diagram}
 	\caption{Example of position synchronization. Orange arrow is a delta vector that shows the change in position since last synchronization. If length of the delta vector exceeds user-defined threshold, synchronization will occur.}
 \end{figure}
 
@@ -690,12 +681,12 @@ To indicate whether a transform's component is included in a packet, so called \
 
 This component uses sequenced channel to send its packets, as only the most recent data is relevant. This system provides user with a very simple, but bandwidth-efficient way to synchronize transform of any networked object. 
 
-\section{Component: Network Spawner}
+\section{Network Spawner}
 \textit{NetworkSpawner} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of spawning and despawning objects when a client connects or disconnects from the server.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=1.1]{NetworkSpawner-inspector}
+	\includegraphics[scale=0.9]{NetworkSpawner-inspector}
 	\caption{NetworkSpawner component displayed inside Unity's inspector.}
 \end{figure}
 
@@ -728,10 +719,10 @@ Component also keeps track of all the spawned objects so when a client disconnec
 \end{figure}
 
 \chapter{Application}
-This chapter showcases a multiplayer game that was build by using previously described high-level networking library. Game is a simple Doom\footnote{https://en.wikipedia.org/wiki/Doom\_(1993\_video\_game)} inspired shooter in which player has to defeat waves of enemies. Game consists main-menu and game scene.
+This chapter showcases and explains the networking behind a multiplayer game that was build using previously described high-level networking library. The game was inspired by a classic title \textit{Doom}\footnote{https://en.wikipedia.org/wiki/Doom\_(1993\_video\_game)} in which player has to defeat waves of incoming enemies. The game consists main-menu and game scene.
 
 \section{Main-menu}
-Upon entering the application, player is placed in a main-menu scene. It is a simple scene that allows the user to either create, join or exit the game.
+Upon entering the application, user is placed in a main-menu scene. It is a simple scene that allows the user to either create, join or exit the game.
 
 \begin{figure}[H]
 	\centering
@@ -739,11 +730,7 @@ Upon entering the application, player is placed in a main-menu scene. It is a si
 	\caption{View into the main-menu.}
 \end{figure}
 
-\textit{Create game} button turns the local player into a host which acts as both client and server. This means other players can join the game by connecting to host's IP address/port combination (port is determined by the second input field in main-menu).\\
-
-\textit{Join game} button attempts to join an already existing game that was started by another application instance. Destination at which attempt will be made is determined by the first and second input fields - first input field represents IP address and second defines port number.\\
-
-\textit{Exit} button simply terminates the application process.
+\textit{Create game} button turns the local application instance into a host which acts as both client and server. This means other players can join the game by connecting to the host's IP address and port combination (where port is determined by the second input field in main-menu). \textit{Join game} button attempts to join an already existing game that was started by another application instance. Destination at which attempt will be made is determined by the first and second input fields - first input field represents IP address and second defines the port number. \textit{Exit} button terminates the application process.
 
 \section{Game scene}
 Once a game has been either created or joined, player is placed in the game scene. It has a dark atmosphere and consists of a rocky map surrounded by moving lava.\\
@@ -754,9 +741,9 @@ Once a game has been either created or joined, player is placed in the game scen
 	\caption{Map as seen from the bird's eye-view.}
 \end{figure}
 
-Main goal of the game is to defeat incoming enemy waves, which get progressively harder by having more and stronger enemies. To help player defeat enemy waves, gun is provided which can be used to shoot enemies from far away. However, gun has limited ammunition, so player has to keep moving around the map where more ammo can be found. \\
+Main goal of the game is to defeat incoming enemy waves, which get progressively harder by having more enemies which also get stronger. To help player defeat enemy waves, gun is provided which can be used to shoot enemies from far away. However, gun has limited ammunition, so player has to keep moving around the map where more ammo can be found. \\
 
-Player also has limited health which decreases with each enemy hit. If it reaches zero, player dies. If all the players die, game is finished and new game must be created.
+Player also has limited health which decreases with each enemy hit. If it reaches zero, player dies. If all the players die, game is finished and a new game must be created.
 
 \begin{figure}[H]
 	\centering
@@ -768,22 +755,22 @@ In order to help player survive and defeat enemy waves, various items called \te
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.7]{Game-pick-ups}
+	\includegraphics[scale=0.55]{Game-pick-ups}
 	\caption{Example of pick-ups that can be found on the map. There are three types: health and ammo pick-ups which restores some of the player's health and ammo respectively, and steroid which grants player the ability to perform big jumps for a certain period of time.}
 \end{figure}
 
 \subsection{Networking implementation}
 This section is going to explain how multiplayer was implemented in the game scene by utilizing the high-level library.\\
 
-For initial spawning of the players that join the game, NetworkSpawner component is used. It simply spawns a prefab of the player on a predefined position once it successfully joins the game.\\
+For initial spawning of the players that join the game, \textbf{NetworkSpawner} component is used. It simply spawns a prefab of the player on a predefined position once it successfully joins the game.\\
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{Game-players-at-spawn}
-	\caption{Example of players that have joined the game and were placed on the spawn positions.}
+	\caption{Players that have joined the game and were placed on their spawn positions.}
 \end{figure}
 
-After a player has joined, wave spawning logic will start. That logic is executed exclusively by the server in order to ensure server-authority. It includes spawning of enemies via NetworkManager and tracking when new ones should be spawned. It consists of multiple spawn actions, where each action spawns certain amount of enemies in a specific predefined spawn area.\\
+After a player has joined, wave spawning logic will start. That logic is executed exclusively by the server in order to ensure server-authority. It includes spawning of enemies via \textbf{NetworkManager} and tracking when new ones should be spawned. It consists of multiple spawn actions, where each action spawns certain amount of enemies in a specific predefined spawn area.\\
 
 \begin{figure}[H]
 	\centering
@@ -791,7 +778,7 @@ After a player has joined, wave spawning logic will start. That logic is execute
 	\caption{All of the defined spawn areas which are used by the wave spawning logic.}
 \end{figure}
 
-Once first set of enemies has been spawned, game officially starts. Enemy behavior is controlled exclusively by the server using custom NetworkBehavior implementations. Their position, rotation and positions of bullets they shoot are all synchronized with a NetworkTransform component.\\
+Once first set of enemies has been spawned, game officially starts. Enemy behavior is controlled exclusively by the server using custom \textbf{NetworkBehavior} implementations. Their position, rotation and positions of bullets they shoot are all synchronized with a \textbf{NetworkTransform} component.\\
 
 \begin{figure}[H]
 	\centering
@@ -799,26 +786,26 @@ Once first set of enemies has been spawned, game officially starts. Enemy behavi
 	\caption{View of the scene in the middle of combat. It consists of three enemy jet-pack riders (object IDs 23, 24 and 25) which are shooting bullets (IDs 31, 34 and 40) at two players that are in the game (IDs 20 and 21).}
 \end{figure}
 
-Each pick-up in the game is also a networked object whose collision with the player is tracked by the server (this logic is encapsulated inside a custom NetworkBehavior implementation). Once a collision is detected, pick-up is disabled over the network and effect is applied to the player that triggered the collision.
+Each pick-up in the game is also a networked object whose collision with the player is tracked by the server (this logic is encapsulated inside a custom \textbf{NetworkBehavior} implementation). Once a collision is detected, pick-up is disabled over the network and effect is applied to the player that triggered the collision.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.8]{Game-pick-ups-networked}
+	\includegraphics[scale=0.85]{Game-pick-ups-networked}
 	\caption{Networked pick-ups in the game.}
 \end{figure}
 
-If all the player have been killed by the enemies, game is over and host of the game can either restart the game by pressing the \textit{Retry} button or can terminate the game session by pressing the \textit{Exit} button. Restarting the game causes a scene-reload on all clients and game logic is executed from start as described previously.
+If all players have been killed by the enemies, game is over and host of the game can either restart the game by pressing the \textit{Retry} button or can terminate the game session by pressing the \textit{Exit} button. Restarting the game causes a scene-reload on all clients and game logic is executed from start as described previously.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{Game-over}
-	\caption{Game-over interface shown to the host of the game once all players have been killed.}
+	\caption{Game-over screen shown to the host once all players have been killed.}
 \end{figure}
 
 
 
 \subsection{Networking scripts}
-This section lists and given brief explanation of all the scripts that have been developed to achieve multiplayer functionality in the game scene.
+This section lists and gives a brief explanation of all the scripts that have been developed to achieve multiplayer functionality in the game scene.
 
 \begin{table}[H]
 	\centering
@@ -861,10 +848,10 @@ This thesis documents and explains the theory, implementation and application of
 \begin{enumerate}
 	\item Transport chapter which describes an implementation of a low-level reliable UDP library.
 	\item High-level chapter which describes Unity specific components that create powerful abstractions and allow users to easily develop complex networking solutions.
-	\item Application chapter that showcases actual product developed on top of high-level library. 
+	\item Application chapter that showcases a game developed using high-level library. 
 \end{enumerate}
 
-This thesis demonstrates that creating a multiplayer game is objectively not an easy task and utilizing an already existing networking library is recommended. Thesis also provides detailed information about how previously mentioned layers have been achieved in order to allow a reader to recreate those solutions for their own uses, if needed.
+Thesis also demonstrates that creating a multiplayer game is not an easy task and utilizing an existing networking solution is recommended. Finally, it provides detailed information about how a custom networking solution has been achieved in order to allow the reader to recreate such system for their own uses, if needed.
 
 \bibliography{literature}
 \bibliographystyle{fer}
