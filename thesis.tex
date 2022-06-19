@@ -366,7 +366,7 @@ This fragmentation and reassembly implementation allows users to efficiently and
 
 
 \subsection{Connection}
-Connection represents a link between two network nodes. It is a higher level component that has multiple responsibilities:
+Connection represents a link between two network nodes \cite{GafferOnGames:ClientServerConnection}. It is a higher level component that has multiple responsibilities:
 
 \begin{enumerate}
 	\item Holds an array of channels and is responsible for forwarding packets to the corresponding channel.
@@ -566,11 +566,11 @@ Even though it is one of the core components, on its own, it does not do much. I
 \subsection{State synchronization}
 State synchronization is automatic distribution of modified state to each process in a networked environment. It abstracts away the need to create custom packets for each state variable present in the networked simulation. This section explains how such feature is achieved. \\
 
-At the core of state synchronization feature is a concept of change - only a variable that has changed needs to be broadcast. Since standard state variables such as integers do not have a way to listen for their changes, a new generic wrapper type is introduced - \textit{NetworkVariable<T>} (where T represents variable's data-type).\\
+At the core of state synchronization feature is a concept incremental updates\footnote{https://en.wikipedia.org/wiki/Incremental\_computing} - only variables that have changed need to be synced. Since primitive types such as integers do not have a way to listen for their changes, a new generic wrapper type is introduced - \textit{NetworkVariable<T>} (where T represents variable's data-type). This system is a combination of Unity's previous \cite{Unity:UNet-SyncVar} and current \cite{Unity:NetworkVariable} state synchronization solutions.\\
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.27]{NetworkObject-tree}
+	\includegraphics[scale=0.22]{NetworkObject-tree}
 	\caption{NetworkObject hierarchy example - each networked object contains one or more behaviors and each behavior contains zero or more networked variables.}
 \end{figure}
 
