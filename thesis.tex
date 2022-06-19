@@ -48,11 +48,11 @@
 In the recent years, multiplayer\footnote{https://en.wikipedia.org/wiki/Multiplayer\_video\_game} games have been on the rise. There are many reasons for it, with main ones being social interactions, replayability and unique experiences they provide. For a game to be considered multiplayer, it has to support a way for multiple human players to experience and participate in the game. Based on that simple requirement, games can implement multiplayer in a variety of ways:
 
 \begin{enumerate}
-	\item \textbf{Local multiplayer} in which the game runs on a single computing system. Popular implementations of local multiplayer include \textit{shared screen} and \textit{split screen}. In shared screen games, all players see the game from a single camera perspective, while in split screen mode each player has its own portion of the screen which shows the game from individual player's perspective. In terms of implementation difficulty, this is the simplest form of multiplayer and is not much different from single-player.
+	\item \textbf{Local multiplayer} in which the game runs on a single computing system. Popular implementations of local multiplayer include \textit{shared screen} and \textit{split screen}. In shared screen games, all players see the game from a single camera perspective, while in split screen mode each player has its portion of the screen which shows the game from an individual player's perspective. In terms of implementation difficulty, this is the simplest form of multiplayer and is not much different from single-player.
 	
 	\item \textbf{LAN multiplayer} in which the game runs on multiple computing systems and game simulation is synchronized over a local area network\footnote{https://en.wikipedia.org/wiki/Local\_area\_network}. Since local area networks are usually extremely fast and reliable, multiplayer implementation does not cause many problems.
 	
-	\item \textbf{WAN multiplayer} which is similar to LAN, except game simulation is synchronized over a wide area network\footnote{https://en.wikipedia.org/wiki/Wide\_area\_network} such as the Internet. Multiplayer over wide area networks requires the most complex implementation as such networks are unreliable and latency can vary greatly depending on the network conditions and distances between computing systems.
+	\item \textbf{WAN multiplayer} is similar to LAN, except game simulation is synchronized over a wide area network\footnote{https://en.wikipedia.org/wiki/Wide\_area\_network} such as the Internet. Multiplayer over wide area networks requires the most complex implementation considering the unreliability and latency of such networks.
 \end{enumerate}
 
 \begin{figure}[H]
@@ -61,29 +61,29 @@ In the recent years, multiplayer\footnote{https://en.wikipedia.org/wiki/Multipla
 	\caption{\textit{Pummel Party}, example of a multiplayer game.}
 \end{figure}
  
-Even without multiplayer, development of video-games is a process which requires a wide variety of skills. Adding the requirement of multiplayer functionality to such process greatly increases the difficulty of proper implementation - the one that runs without any problems. For that reason, game developers usually do not directly implement multiplayer solutions, but rather use existing networking libraries that solve many complex problems and provide high-level features for easy prototyping and fast development cycles. This thesis is going to explain how such solution can be implemented from the ground up. \\
+Development of video-games is a process which requires a wide variety of skills. Adding the requirement of multiplayer functionality to such a process greatly increases the complexity and development time required for creating the final game. For that reason, game developers rarely directly implement multiplayer solutions, but rather use existing networking libraries that provide high-level features for easy prototyping and fast development cycles. This thesis explains how such a solution can be implemented from the ground up. \\
 
 \chapter{Transport}
 This chapter introduces and explains in detail the concept of a transport layer. It starts by giving an introduction to networking, explaining motivation behind a layered structure. It then discusses today's most widely used transport layers. Finally, it finishes by giving a detailed look into a custom transport layer implementation.
 
 \section{Introduction}
-Computer networking is a very complex problem. It consists of many different sub-problems, such as packet-routing, data transmission, integrity, reliability, congestion-control, flow-control and much more. In order to deal with such complexity, ISO (International Organization for Standardization)\footnote{https://en.wikipedia.org/wiki/International\_Organization\_for\_Standardization} developed OSI (Open Systems Interconnection) model\footnote{https://en.wikipedia.org/wiki/OSI\_model} in the year 1984. OSI model divides complex problem of computer networking into a structure consisting of 7 layers\footnote{https://www.geeksforgeeks.org/layers-of-osi-model/}, each layer building on top of the layer below it. Layers are defined as follows:
+Computer networking is a complex problem that consists of many different sub-problems, such as packet-routing, data transmission, integrity, reliability, congestion-control, flow-control and much more. To deal with such complexity, ISO (International Organization for Standardization)\footnote{https://en.wikipedia.org/wiki/International\_Organization\_for\_Standardization} developed OSI (Open Systems Interconnection) model\footnote{https://en.wikipedia.org/wiki/OSI\_model} in the year 1984. OSI model divides the complex problem of computer networking into a structure consisting of 7 layers\footnote{https://www.geeksforgeeks.org/layers-of-osi-model/}, each layer building on top of the layer below it. Layers are defined as follows:
 
 \begin{enumerate}
-	\item \textbf{Physical layer} is responsible for transmission of raw signals between two or more physical entities. Jobs of this layer include transmission of bits, bit-rate control and support for various modes of transmission such as simplex, half-duplex and full-duplex.
+	\item \textbf{Physical layer} is responsible for transmission of raw signals between two or more physical entities. Jobs of this layer include transmission of bits, bit-rate control and support for various modes of transmission such as simplex, half-duplex and full-duplex\footnote{https://www.geeksforgeeks.org/transmission-modes-computer-networks/}.
 	
 	\item \textbf{Data-link layer} enables communication between two neighboring network nodes (devices). Basic functions of this layer include point-to-point frame transmission, error-control and data-flow control. 
 	
 	\item \textbf{Network layer} solves the problem of end-to-end device communication. Functions of network layer include routing (finding optimal route for data to reach its destination) and logical addressing (ability to uniquely identify a device on the computer network).
 	
-	\item \textbf{Transport layer} is responsible for transmission of data from process-to-process while satisfying transparency criterion. There are two types of transparencies \cite{kommre}:
+	\item \textbf{Transport layer} is responsible for transmission of data from process-to-process while satisfying a transparency criterion. There are two types of transparencies \cite{kommre}:
 	
 	\begin{enumerate}
 		\item \textit{Semantic transparency} whose only task it to ensure that data arrives reliably and in-order it was sent.
 		\item \textit{Temporal transparency} that only focuses on delivering data as fast as possible.
 	\end{enumerate}
 
-	\item \textbf{Session layer} is responsible for establishing, maintaining and terminating connections, authentication and security.
+	\item \textbf{Session layer} is responsible for establishing, maintaining and terminating connections between hosts, authentication and security.
 	
 	\item \textbf{Presentation layer} is responsible for encryption/decryption, compression and translation between data formats.
 	
@@ -115,7 +115,7 @@ The second protocol, which implements temporal transparency, is called \textit{U
 
 
 \section{Custom transport implementation}
-While TCP and UDP are great at solving their own use-cases, there exists a major problem: each protocol solves only one type of transparency. At the time those protocols were developed, it was thought those protocols could be used for solving all the problems. \\
+While TCP and UDP are successful at solving most use-cases, there exists a major limitation: each protocol solves only one type of transparency. At the time those protocols were developed, it was thought those protocols could be used for solving all the problems. \\
 
 However, with the rise of online gaming, the need for having both transparency implementations at once appeared; some data would require reliability and ordering that TCP provides (for example, textual chat messages), while other types needed only latest data without the guarantee of delivery (for example, position of the player in a virtual world). \\
 
@@ -127,14 +127,14 @@ Using both protocols at the same time, based on the type of data, is not an idea
 	\item Application code-base would be hard to manage, potentially resulting in slower development and harder to track bugs.
 \end{enumerate}
 
-For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, where temporal transparency is preserved. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, it simply needs to be upgraded it with \textbf{optional} semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
+For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, preserving temporal transparency. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, it simply needs to be upgraded it with \textbf{optional} semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
 
 
 
 \subsection{Packet}
-\classname{Packet} represents a single outgoing message of arbitrary data that can be sent over the network. It is a thin abstraction layer over raw byte-array and therefore offers some of the benefits that a raw byte-array cannot. \\
+\classname{Packet} represents a single outgoing message of arbitrary data that can be sent over the network. It is a thin abstraction layer over raw byte-array and therefore offers benefits that a raw byte-array cannot. \\
 
-One such benefit is object pooling\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern}. As creation of packets is a very frequent occurrence in networked applications, allocating new packet instances (which also internally keeps a medium sized byte-array) each time a packet is needed would quickly fill-up heap memory, prompting execution of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}. This is especially important in applications that have time constraints, such as games, where even one slowly executed frame could ruin user experience. \\
+One such benefit is object pooling\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern}. As creation of packets is a very frequent occurrence in networked applications, allocating new packet instances each time a packet is needed would quickly fill-up heap memory, prompting execution of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}. This is especially important in applications that have time constraints, such as games, where even one slowly executed frame could ruin user experience. \\
 
 Another benefit is separation of write-only and read-only operations. Since \classname{Packet} represents an outgoing packet, it only offers methods for writing data (constructing the packet). Those methods also provide powerful functionality, allowing user to construct packets containing complex structures. \\
 
@@ -144,11 +144,11 @@ Another benefit is separation of write-only and read-only operations. Since \cla
 	\caption{Example of writing data to a packet}
 \end{figure}
 
-Similarly to \classname{Packet}, which is write-only, there exists a read-only packet version named \classname{Read\-Only\-Packet} which represents a single incoming message of arbitrary data that was received over the network. It offers the same interface as \classname{Packet}, but instead of write, read methods are exposed. Another important feature of \classname{Read\-Only\-Packet} is that it cannot in any way modify underlying packet data, making it very safe to use, even in multi-threaded scenarios. \\
+Similarly to \classname{Packet}, which is write-only, \classname{Read\-Only\-Packet} is a read-only view that represents a single incoming message of arbitrary data that was received over the network. It offers the same interface as \classname{Packet}, but instead of write, read methods are exposed. Another important feature of \classname{Read\-Only\-Packet} is that it cannot in any way modify underlying packet data, making it very safe to use, even in multi-threaded scenarios. \\
 
 Finally, the last benefit is cleaner code. Spotting an instance of \classname{Packet} or \classname{Read\-Only\-Packet} immediately gives information to the reader that this code works with networking. Same could not be said for byte-array as its usages are much broader. \\
 
-\classname{Packet} also defines an important constant, which is the maximum size, in bytes. This constant is carefully chosen to avoid packet fragmentation on the network layer. Any packets that require bigger size must use a fragmented channel which will perform fragmentation and reassembly on the application layer. Maximum size is equal to Ethernet MTU (Maximum transmission unit, 1500 bytes) subtracted by IP header size (20 bytes) and UDP header size (8 bytes), which results in maximum size of 1472 bytes.\\
+\classname{Packet} also defines an important constant, which is the maximum size, in bytes. This constant was carefully chosen to avoid packet fragmentation on the network layer. Any packets that require bigger size must use a fragmented channel which will perform fragmentation and reassembly on the application layer. Maximum size is equal to Ethernet MTU (Maximum transmission unit, 1500 bytes) subtracted by IP header size (20 bytes) and UDP header size (8 bytes), which results in maximum size of 1472 bytes.\\
 
 \begin{equation}
 	Maximum \; size = 1500 - 20 - 8 = 1472 \; bytes \label{eq:max_packet_size}
@@ -198,9 +198,9 @@ Only one header type is special, and that is the \textit{Data} type, as that is 
 
 
 \subsubsection{Array pooling}
-Fluid gameplay with no stuttering is essential for user experience. Standard value that always needs to be maintained is at least 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS). Failing to render at least that many frames each second is going to result in noticeable lag, drastically decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}, where all of the previously allocated memory that is no longer referenced is being freed.\\
+Fluid gameplay with no stuttering is essential for user experience. A minimum value of 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS) is considered essential for a pleasant experience. Failing to render at least that many frames each second might result in noticeable lag, decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}, where all of the previously allocated memory that is no longer referenced gets freed.\\
 
-However, garbage collection is only triggered when memory is no longer referenced. If we keep a reference to previously allocated memory and reuse it, no garbage collection will be performed. Such process of reusing memory is called \textit{object pooling}\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern} and is a standard practice in high-performance applications. As networked applications constantly keep sending packets back and forth (and packets are essentially just arrays of bytes), utilizing object pooling is perfectly suitable.\\
+However, garbage collection is only triggered when memory is no longer referenced. If we keep a reference to previously allocated memory and reuse it, no garbage collection will be performed. This type of memory reuse is called \textit{object pooling}\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern} and is a standard practice in high-performance applications. As networked applications constantly keep sending packets back and forth (and packets are essentially just arrays of bytes), utilizing object pooling is perfectly suitable.\\
 
 In our implementation, array pooling is implemented using an array of buckets. In this context, term \textit{bucket} means a collection of reusable arrays. Each bucket holds multiple arrays of same sizes and each subsequent bucket holds arrays of exponentially increasing capacities. First bucket holds arrays of size \textit{Packet.MaxSize}. Last bucket holds arrays of sizes \textit{Packet.MaxSize * 256}, which is maximum allowed size of a fragmented packet.
 
@@ -305,7 +305,7 @@ Reliable channel solves all four problems: order, duplication, reliability and f
 
 To solve reliability, packet acknowledgments and re-transmission concepts are borrowed from TCP. The idea is that each packet sent needs to be acknowledged by the receiver. If packet is not acknowledged in a certain amount of time, it is considered lost and will be re-transmitted. A packet that has been sent, but not yet acknowledged by the receiver is called a \textit{pending packet}. \\
 
-Each pending packet internally maintains a timer that will, if expired, automatically resend the packet. If acknowledgment is received before timer expires, timer is canceled and pending packet is removed from the collection of active pending packets. To prevent sending packets \textit{ad infinitum}, each pending packet internally counts number of re-transmission attempts. If the counter exceeds maximum number of attempts (value which is defined by the channel), connection is deemed lost and will be timed-out. \\
+Each pending packet internally maintains a timer that will, if expired, automatically resend the packet. If acknowledgment is received before timer expires, timer is canceled and pending packet is removed from the collection of active pending packets. To prevent sending packets \textit{ad infinitum}, each pending packet internally counts number of re-transmission attempts. If the counter exceeds maximum number of attempts (value which is defined by the channel), connection is deemed as lost. \\
 
 \begin{figure}[H]
 	\centering
@@ -313,9 +313,9 @@ Each pending packet internally maintains a timer that will, if expired, automati
 	\caption{Resend diagram that shows how data and acknowledgment packets are sent and received. Diagram shows that data-packet 0 was successfully acknowledged and did not require a resend. Meanwhile, acknowledgment of data-packet 1 was lost in transit, which in turn made sender's timer time-out, causing data-packet 1 to be resent.}
 \end{figure}
 
-On the receiving side of the channel, array of received packets is maintained. It is an array that is updated in the following manner: for each received packet, sequence number is read from the header. If array slot at index which is equal to sequence number is empty, that means received packet is not a duplicate and is stored in the array. If the slot is already filled, that means received packet is a duplicate and is discarded. If a packet was successfully stored, acknowledgment is sent to the sender. \\
+On the receiving side of the channel, array of received packets is maintained. It is an array that is updated in the following manner: for each received packet, sequence number is read from the header. If array slot at index which is equal to sequence number is empty, that means received packet is not a duplicate and is stored in the array. If the slot is already filled, that means received packet is a duplicate and is discarded. \\
 
-Acknowledgment packet has the ability to acknowledge multiple packets at once. Naive approach would be to simply send an array of several most recently received packet sequence numbers. However, since each sequence number is a 16-bit integer, that approach is very bandwidth inefficient. Much more efficient approach is to use so called \textit{anchor sequence number} combined with additional acknowledgment bit-field. \\
+For each received packet, duplicate or not, acknowledgment is sent to the sender. Acknowledgment packet has the ability to acknowledge multiple packets at once. Naive approach would be to simply send an array of several most recently received packet sequence numbers. Since each sequence number is a 16-bit integer, that approach is very bandwidth inefficient. Much more efficient approach is to use so called \textit{anchor sequence number} combined with additional acknowledgment bit-field. \\
 
 Anchor sequence number is an actual 16-bit sequence number and it is equal to the sequence number of the most recently received packet. Acknowledgment bit-field is a bit-field in which each bit is responsible for acknowledging a sequence number relative to anchor. Concretely, first bit is responsible for indicating whether packet with sequence number \textit{anchor - 1} has been received. If bit is set, it means packet was received, otherwise it wasn't. In general, bit at position \textit{n} is responsible for indicating whether packet with sequence number \textit{anchor sequence number - n} has been received. With this approach, 8 previous sequence numbers can be acknowledged using only 1 additional byte of data. This approach achieves perfect entropy\footnote{https://en.wikipedia.org/wiki/Entropy\_(information\_theory)}.\\
 
@@ -411,7 +411,7 @@ Client represents a network node that has one to one relationship with the serve
 	\label{table:client-api}
 \end{table}
 
-Client also raises important events that occurred during runtime\footnote{https://en.wikipedia.org/wiki/Runtime\_(program\_lifecycle\_phase)}, to which many subscribers can listen to.
+Client also raises important events that occurred during runtime\footnote{https://en.wikipedia.org/wiki/Runtime\_(program\_lifecycle\_phase)}, which are listed in table \ref{table:client-events}.
 
 \begin{table}[H]
 	\centering
@@ -441,7 +441,7 @@ Server represents a network node that has one to many relationship with clients.
 		SendToMany      & Sends a packet to many clients.                                                                              \\ \hline
 		SendToAll       & Sends a packet to all connected clients.                                                                     \\ \hline
 		Kick            & Deliberately disconnects specific client.                                                                    \\ \hline
-		Stop            & \begin{tabular}[c]{@{}c@{}}Disconnects all clients and prevents\\ any further incoming packets.\end{tabular} \\ \hline
+		Stop            & \begin{tabular}[c]{@{}c@{}}Disconnects all clients and ignores\\ any further incoming packets.\end{tabular} \\ \hline
 	\end{tabular}
 	\caption{Server API.}
 	\label{table:server-api}
@@ -483,7 +483,7 @@ This chapter explains in detail components that together make-up high-level libr
 \end{enumerate}
 
 \subsection{Network configuration}
-In order to help user easily configure networking settings, it is all in one place - in the NetworkManager component. Because of that, it is also the only singleton\footnote{https://en.wikipedia.org/wiki/Singleton\_pattern} component, so that it can be conveniently accessed from anywhere in the application.\\
+In order to help user easily configure networking settings, it is all in one place - in the NetworkManager component. It is also the only component that implements the singleton pattern\footnote{https://en.wikipedia.org/wiki/Singleton\_pattern}, allowing convenient access from anywhere in the application.\\
 
 \textit{Run In Background} set to \textit{true} ensures that application is going to run even if it does not have focus\footnote{https://en.wikipedia.org/wiki/Focus\_(computing)}. \textit{Don't Destroy On Load}\footnote{https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html} set to \textit{true} marks NetworkManager as scene-persistent - changing scenes will not destroy the instance. \textit{Network Prefabs Path} defines where all of the object templates that can be spawned over the network are located.\\
 
@@ -498,7 +498,7 @@ Next-up there are client settings - IP address and port to which connect attempt
 \end{figure}
 
 \subsection{Network objects}
-NetworkManager stores and keeps track of all active networked objects in the current scene. It separates them into two groups: scene objects and spawned objects. Scene objects are networked objects that are a part of the scene and both client and server have them at the start of the game. Runtime objects are networked objects that are spawned during runtime by the manager on the server side. In order to uniquely identify objects over the network, manager also assigns each object a unique number called \textit{object ID}. \\
+NetworkManager stores and keeps track of all active networked objects in the current scene. It separates them into two groups: scene objects and spawned objects. Scene objects are networked objects that are baked into the scene and both client and server have them at the start of the game. Runtime objects are networked objects that are spawned during runtime by the manager on the server side. In order to uniquely identify objects over the network, manager also assigns each object a unique number called \textit{object ID}. \\
 
 \subsubsection{Spawning}
 In order for manager to be able to spawn objects over the network, each process instance has to contain information about which objects can be spawned. This information is stored in a dictionary which maps unique IDs to corresponding prefabs that can be spawned.
@@ -571,7 +571,7 @@ At the core of state synchronization feature is a concept of change - only a var
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.27]{NetworkObject-tree}
-	\caption{NetworkObject hierarchy example - each networked object consists of one or more behaviors and each behavior can contain zero or more networked variables.}
+	\caption{NetworkObject hierarchy example - each networked object contains one or more behaviors and each behavior contains zero or more networked variables.}
 \end{figure}
 
 NetworkVariable is a simple component that encapsulates a single state variable, keeps track of whether that variable has been modified and has the ability to serialize and deserialize the wrapped value. If state variable has been modified, it is going to fire an event. This event is important as it is going to notify NetworkBehavior that contains the variable of the change. In turn, behavior is going to notify NetworkObject of the change and that object is going to be added to a collection of objects that need to be synced.
@@ -682,7 +682,7 @@ To indicate whether a transform's component is included in a packet, so called \
 This component uses sequenced channel to send its packets, as only the most recent data is relevant. This system provides user with a very simple, but bandwidth-efficient way to synchronize transform of any networked object. 
 
 \section{Network Spawner}
-\textit{NetworkSpawner} is a concrete implementation of \textit{NetworkBehavior} that solves the problem of spawning and despawning objects when a client connects or disconnects from the server.
+\textit{NetworkSpawner} is a concrete implementation of \textit{NetworkBehavior} that spawns and despawns objects when a client connects or disconnects from the server.
 
 \begin{figure}[H]
 	\centering
@@ -719,18 +719,18 @@ Component also keeps track of all the spawned objects so when a client disconnec
 \end{figure}
 
 \chapter{Application}
-This chapter showcases and explains the networking behind a multiplayer game that was build using previously described high-level networking library. The game was inspired by a classic title \textit{Doom}\footnote{https://en.wikipedia.org/wiki/Doom\_(1993\_video\_game)} in which player has to defeat waves of incoming enemies. The game consists main-menu and game scene.
+This chapter showcases and explains the networking behind a multiplayer game that was build using previously described high-level networking library. The game was inspired by a classic title \textit{Doom}\footnote{https://en.wikipedia.org/wiki/Doom\_(1993\_video\_game)} in which player has to defeat waves of incoming enemies. The game consists of a game menu and a game scene.
 
-\section{Main-menu}
-Upon entering the application, user is placed in a main-menu scene. It is a simple scene that allows the user to either create, join or exit the game.
+\section{Game menu}
+Upon entering the application, user is placed in the game menu. It is a simple scene that allows the user to either create, join or exit the game.
 
 \begin{figure}[H]
 	\centering
 	\includegraphics[scale=0.5]{MainMenu}
-	\caption{View into the main-menu.}
+	\caption{View into the game menu.}
 \end{figure}
 
-\textit{Create game} button turns the local application instance into a host which acts as both client and server. This means other players can join the game by connecting to the host's IP address and port combination (where port is determined by the second input field in main-menu). \textit{Join game} button attempts to join an already existing game that was started by another application instance. Destination at which attempt will be made is determined by the first and second input fields - first input field represents IP address and second defines the port number. \textit{Exit} button terminates the application process.
+\textit{Create game} button turns the local application instance into a host which acts as both client and server. This means other players can join the game by connecting to the host's IP address and port combination (where port is determined by the second input field in the menu). \textit{Join game} button attempts to join an already existing game that was started by another application instance. Destination at which attempt will be made is determined by the first and second input fields - first input field represents IP address and second defines the port number. \textit{Exit} button terminates the application process.
 
 \section{Game scene}
 Once a game has been either created or joined, player is placed in the game scene. It has a dark atmosphere and consists of a rocky map surrounded by moving lava.\\
