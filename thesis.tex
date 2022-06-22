@@ -519,7 +519,7 @@ Next-up there are client settings - IP address and port to which connect attempt
 \end{figure}
 
 \subsection{Network objects}
-NetworkManager stores and keeps track of all active networked objects in the current scene. It separates them into two groups: scene objects and spawned objects. Scene objects are networked objects that are baked into the scene and both client and server have them at the start of the game. Runtime objects are networked objects that are spawned during runtime by the manager on the server side. In order to uniquely identify objects over the network, manager also assigns each object a unique number called \textit{object ID}. \\
+NetworkManager stores and keeps track of all active networked objects in the current scene. It separates them into two groups: scene objects and spawned objects. Scene objects are networked objects that are baked into the scene and both client and server have them at the start of the game. Spawned objects are networked objects that are spawned during runtime by the manager on the server side. In order to uniquely identify objects over the network, manager also assigns each object a unique number called \textit{object ID}. \\
 
 \subsubsection{Spawning}
 In order for manager to be able to spawn objects over the network, each process instance has to contain information about which objects can be spawned. This information is stored in a dictionary which maps unique IDs to corresponding prefabs that can be spawned (\ref{fig:network-manager-prefabs}).
@@ -687,7 +687,7 @@ However, since transform synchronization is so common, simple ease of use is not
 \begin{enumerate}
 	\item Object's rotation or scale is in many cases never-changing. That fact can be exploited to save bandwidth by giving the user ability to disable synchronization of particular transport's component (position, rotation or scale). If a component is disabled, its data is never going to be added to the outgoing synchronization packet, saving valuable bandwidth.
 	
-	\item If object's transform does not change, it does not need to be synced. Transform is marked as changed only if one of its enabled components' values has been changed by a value greater than threshold defined for that component. if transform is changed, only modified components are included in the sync packet. This way only changed components of changed transforms are synced, massively reducing the number of sync packets required.
+	\item If object's transform does not change, it does not need to be synced. Transform is marked as changed only if one of its enabled components' values has been changed by a value greater than threshold defined for that component. If transform is changed, only modified components are included in the sync packet. This way only changed components of changed transforms are synced, massively reducing the number of sync packets required.
 \end{enumerate}
 
 \begin{figure}[H]
