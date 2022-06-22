@@ -108,13 +108,13 @@ With such layered structure, \textit{abstraction} was introduced. Every layer si
 \section{Existing transport implementations}
 Previous section mentioned the terms of semantic and temporal transparency. Consequently, there exist two different transport layer implementations, one for each transparency type. \\
 
-The first protocol, which implements semantic transparency, is called \textit{Transmission Control Protocol}\footnote{https://datatracker.ietf.org/doc/html/rfc793} (left column at \ref{fig:tcp-vs-udp}). TCP abstracts away the concept of computer network and exposes a simple interface to the user, where writing bytes over the network is indistinguishable from writing to a simple binary file. TCP implements many complex features to ensure data arrives complete and in-order. It also enforces congestion control, where TCP dynamically adjusts send rate in order to not congest the network. \\
+The first protocol, which implements semantic transparency, is called \textit{Transmission Control Protocol} \cite{rfc793} (left column at \ref{fig:tcp-vs-udp}). TCP abstracts away the concept of computer network and exposes a simple interface to the user, where writing bytes over the network is indistinguishable from writing to a simple binary file. TCP implements many complex features to ensure data arrives complete and in-order. It also enforces congestion control, where TCP dynamically adjusts send rate in order to not congest the network. \\
 
-The second protocol, which implements temporal transparency, is called \textit{User Datagram Protocol}\footnote{https://datatracker.ietf.org/doc/html/rfc768} (right column at \ref{fig:tcp-vs-udp}). UDP is a protocol that implements a thin layer of abstraction over the network layer. UDP does not add any complex features that TCP has, it simply adds four more fields to the packet: source port, destination port, length and checksum. Its simplicity results in higher performance, but at the cost of reliability and order: packets can be lost or duplicated in transit and order of packets is not guaranteed.\\
+The second protocol, which implements temporal transparency, is called \textit{User Datagram Protocol} \cite{rfc768} (right column at \ref{fig:tcp-vs-udp}). UDP is a protocol that implements a thin layer of abstraction over the network layer. UDP does not add any complex features that TCP has, it simply adds four more fields to the packet: source port, destination port, length and checksum. Its simplicity results in higher performance, but at the cost of reliability and order: packets can be lost or duplicated in transit and order of packets is not guaranteed.\\
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.35]{TCP-vs-UDP}
+	\includegraphics[scale=0.45]{TCP-vs-UDP}
 	\caption{Comparison between TCP and UDP protocols, from \cite{NetBurner:TCP-vs-UDP}}
 	\label{fig:tcp-vs-udp}
 \end{figure}
@@ -207,16 +207,16 @@ Only one header type is special, and that is the \textit{Data} type, as that is 
 
 
 \subsubsection{Array pooling}
-Fluid gameplay with no stuttering is essential for user experience. A minimum value of 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS) is considered essential for a pleasant experience. Failing to render at least that many frames each second might result in noticeable lag, decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection\footnote{https://en.wikipedia.org/wiki/Garbage\_collection\_(computer\_science)}, where all of the previously allocated memory that is no longer referenced gets freed.\\
+Fluid gameplay with no stuttering is essential for user experience. A minimum value of 60 frames per second\footnote{https://en.wikipedia.org/wiki/Frame\_rate} (FPS) is considered essential for a pleasant experience. Failing to render at least that many frames each second might result in noticeable lag, decreasing overall user satisfaction. This constraint means that all of the updates need to be performed in about 16 milliseconds. Consequently, this implies that expensive, long-running operations should be run as rarely as possible. One such operation is the process of garbage collection, where all of the previously allocated memory that is no longer referenced gets freed.\\
 
-However, garbage collection is only triggered when memory is no longer referenced. If we keep a reference to previously allocated memory and reuse it, no garbage collection will be performed. This type of memory reuse is called \textit{object pooling}\footnote{https://en.wikipedia.org/wiki/Object\_pool\_pattern} and is a standard practice in high-performance applications. As networked applications constantly keep sending packets back and forth (and packets are essentially just arrays of bytes), utilizing object pooling is perfectly suitable.\\
+However, garbage collection is only triggered when memory is no longer referenced. If we keep a reference to previously allocated memory and reuse it, no garbage collection will be performed. This type of memory reuse is called \textit{object pooling} and is a standard practice in high-performance applications. As networked applications constantly keep sending packets back and forth (and packets are essentially just arrays of bytes), utilizing object pooling is perfectly suitable.\\
 
 In our implementation, array pooling is implemented using an array of buckets. In this context, term \textit{bucket} means a collection of reusable arrays. Each bucket holds multiple arrays of same sizes and each subsequent bucket holds arrays of exponentially increasing capacities. First bucket holds arrays of size \textit{Packet.MaxSize}. Last bucket holds arrays of sizes \textit{Packet.MaxSize * 256}, which is maximum allowed size of a fragmented packet. This structure is shown at \ref{fig:array-pool-buckets}.
 
 
-\begin{figure}[h!]
+\begin{figure}[H]
 	\centering
-	\includegraphics[scale=0.2]{Array-pool-buckets}
+	\includegraphics[scale=0.23]{Array-pool-buckets}
 	\caption{Array pool buckets}
 	\label{fig:array-pool-buckets}
 \end{figure}
