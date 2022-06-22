@@ -133,7 +133,7 @@ Using both protocols at the same time, based on the type of data, is not an idea
 	\item Application code-base would be hard to manage, potentially resulting in slower development and harder to track bugs.
 \end{enumerate}
 
-For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, preserving temporal transparency. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, it simply needs to be upgraded it with \textbf{optional} semantic transparency features that are present in the TCP. Implementations of such protocols are often called RUDP - \textit{Reliable User Datagram Protocol}. The rest of this chapter explains one such implementation.
+For all of those reasons, a custom solution is required - one that allows the user to easily specify, on per packet basis, how data should be delivered. If data is time-sensitive, user must be able to send it in unreliable manner, preserving temporal transparency. If data is important and must be delivered, semantic transparency must be preserved. As UDP already provides temporal transparency, it simply needs to be upgraded (on the application layer) with \textbf{optional} semantic transparency features that are present in the TCP. An application layer protocol that implements semantic transparency features on top of UDP is commonly referred to as \textit{Reliable User Datagram Protocol} (RUDP). The rest of this chapter explains implementation details of one such protocol.
 
 
 
