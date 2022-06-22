@@ -885,12 +885,12 @@ This section lists and gives a brief explanation of all the scripts that have be
 
 
 \chapter{Conclusion}
-This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack. Those chapters are:
+This thesis documents and explains the theory, implementation and application of a networking library designed for developing multiplayer games. Thesis consists of three main chapters, each documenting a single layer in the stack.
 
 \begin{enumerate}
-	\item Transport chapter which describes an implementation of a low-level reliable UDP library.
-	\item High-level chapter which describes Unity specific components that create powerful abstractions and allow users to easily develop complex networking solutions.
-	\item Application chapter that showcases a game developed using high-level library. 
+	\item \textbf{Transport layer library} describes an implementation of a low-level reliable UDP library. It covers efficient data serialization via packet abstractions, multiple channel implementations which solve ordering, duplication, reliability and fragmentation, virtual connections and client/server implementations.
+	\item \textbf{High-level library} explains Unity specific components that create powerful abstractions and allow users to easily develop complex networking solutions. It covers identifying, spawning, toggling and destroying of networked objects, state-synchronization and RPC implementations as well as automatic transform synchronization.
+	\item \textbf{Application} showcases a multiplayer first-person shooter developed using high-level library. It covers concepts of creating and joining virtual game sessions, networked enemy waves, pick-ups and overall game logic.
 \end{enumerate}
 
 Thesis also demonstrates that creating a multiplayer game is not an easy task and utilizing an existing networking solution is recommended. Finally, it provides detailed information about how a custom networking solution has been achieved in order to allow the reader to recreate such system for their own uses, if needed.
